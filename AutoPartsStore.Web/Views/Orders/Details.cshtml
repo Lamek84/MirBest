@@ -40,6 +40,11 @@
     </tbody>
 </table>
 
+@if (!string.IsNullOrEmpty(Model.DeliveryLabel))
+{
+    <p class="product-meta">Versandart: @Model.DeliveryLabel — @(Model.DeliveryCost == 0 ? "kostenlos" : Model.DeliveryCost.ToString("N2") + " €")</p>
+}
+
 <p class="cart-total">Gesamtsumme: @Model.TotalAmount.ToString("N2") €</p>
 
 <div class="cart-actions">

@@ -13,6 +13,11 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.TotalAmount).HasColumnType("decimal(18,2)");
         builder.Property(o => o.PaymentProvider).HasMaxLength(50);
         builder.Property(o => o.PaymentSessionId).HasMaxLength(200);
+        // Nullable — старые заказы (из БД до появления доставки) при миграции
+        // получат NULL вместо падения на NOT NULL constraint.
+        builder.Property(o => o.DeliveryMethod).HasMaxLength(50);
+        builder.Property(o => o.DeliveryLabel).HasMaxLength(200);
+        builder.Property(o => o.DeliveryCost).HasColumnType("decimal(18,2)");
 
         builder.HasIndex(o => o.UserId);
         builder.HasIndex(o => o.PaymentSessionId);

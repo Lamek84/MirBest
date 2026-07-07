@@ -52,10 +52,28 @@ else
         </tbody>
     </table>
 
-    <p class="cart-total">Gesamtsumme: @total.ToString("N2") €</p>
+    <p class="cart-total">Zwischensumme: @total.ToString("N2") € <span class="product-meta">zzgl. Versandkosten je nach gewählter Versandart</span></p>
 
     <div class="cart-actions">
-        <form asp-action="Checkout" method="post">
+        <form asp-action="Checkout" method="post" class="checkout-form">
+            <div class="delivery-options">
+                <p class="delivery-title">Versandart wählen</p>
+                @foreach (var option in DeliveryOptions.All)
+                {
+                    <label class="delivery-option">
+                        @if (option.Code == DeliveryOptions.Pickup.Code)
+                        {
+                            <input type="radio" name="deliveryMethod" value="@option.Code" checked />
+                        }
+                        else
+                        {
+                            <input type="radio" name="deliveryMethod" value="@option.Code" />
+                        }
+                        <span>@option.DisplayName</span>
+                        <span class="delivery-price">@(option.Price == 0 ? "kostenlos" : option.Price.ToString("N2") + " €")</span>
+                    </label>
+                }
+            </div>
             <button type="submit" class="btn">Jetzt bezahlen</button>
         </form>
         <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">Weiter einkaufen</a>

@@ -1,3 +1,7 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     font-family: Segoe UI, Arial, sans-serif;
     margin: 0;
@@ -280,6 +284,9 @@ footer {
     padding: 6px 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    background-color: #fff;
 }
 
 label {
@@ -543,9 +550,46 @@ a.service-card:hover {
 
 .cart-actions {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 12px;
     margin-top: 16px;
+}
+
+.checkout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.delivery-title {
+    margin: 0 0 6px 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.delivery-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.delivery-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.delivery-price {
+    color: #666;
+    font-size: 13px;
+    margin-left: auto;
 }
 
 .contact-grid {
@@ -575,7 +619,6 @@ a.service-card:hover {
 }
 
 .contact-form-wrapper textarea.form-control {
-    max-width: 100%;
     resize: vertical;
 }
 

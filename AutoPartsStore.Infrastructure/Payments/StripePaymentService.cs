@@ -26,6 +26,40 @@ public class StripePaymentService : IPaymentService
             throw new InvalidOperationException("Stripe ist nicht konfiguriert (Stripe:SecretKey fehlt in appsettings.json / User Secrets).");
         }
 
+        var lineItems = order.Items.Select(item => new SessionLineItemOptions
+        {
+            Quantity = item.Quantity,
+            PriceData = new SessionLineItemPriceDataOptions
+            {
+                Currency = _settings.Currency,
+                UnitAmount = (long)Math.Round(item.UnitPrice * 100, MidpointRounding.AwayFromZero),
+                ProductData = new SessionLineItemPriceDataProductDataOptions
+                {
+                    Name = item.ProductName
+                }
+            }
+        }).ToList();
+
+        // Доставка — отдельной строкой в чеке, чтобы сумма в Stripe совпадала
+        // с TotalAmount заказа (товары + DeliveryCost). При самовывозе (0 €)
+        // строку не добавляем — Stripe не любит нулевые line items.
+        if (order.DeliveryCost > 0)
+        {
+            lineItems.Add(new SessionLineItemOptions
+            {
+                Quantity = 1,
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = _settings.Currency,
+                    UnitAmount = (long)Math.Round(order.DeliveryCost * 100, MidpointRounding.AwayFromZero),
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = "Versand: " + (order.DeliveryLabel ?? order.DeliveryMethod)
+                    }
+                }
+            });
+        }
+
         var options = new SessionCreateOptions
         {
             Mode = "payment",
@@ -33,19 +67,7 @@ public class StripePaymentService : IPaymentService
             CancelUrl = cancelUrl,
             ClientReferenceId = order.Id.ToString(),
             Metadata = new Dictionary<string, string> { { "orderId", order.Id.ToString() } },
-            LineItems = order.Items.Select(item => new SessionLineItemOptions
-            {
-                Quantity = item.Quantity,
-                PriceData = new SessionLineItemPriceDataOptions
-                {
-                    Currency = _settings.Currency,
-                    UnitAmount = (long)Math.Round(item.UnitPrice * 100, MidpointRounding.AwayFromZero),
-                    ProductData = new SessionLineItemPriceDataProductDataOptions
-                    {
-                        Name = item.ProductName
-                    }
-                }
-            }).ToList()
+            LineItems = lineItems
         };
 
         var service = new SessionService();

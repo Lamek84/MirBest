@@ -8,7 +8,15 @@ public class Order : BaseEntity
     // Простой статус строкой — см. константы в OrderStatus.
     public string Status { get; set; } = OrderStatus.PendingPayment;
 
+    // Сумма товаров + стоимость доставки (DeliveryCost).
     public decimal TotalAmount { get; set; }
+
+    // Снимок выбранного способа доставки на момент заказа — код, название
+    // и цена берутся из DeliveryOptions, но хранятся отдельно, чтобы будущие
+    // изменения цен/списка служб не меняли задним числом уже оформленные заказы.
+    public string? DeliveryMethod { get; set; }
+    public string? DeliveryLabel { get; set; }
+    public decimal DeliveryCost { get; set; }
 
     // Кто и по какой сессии принял оплату — нужно, чтобы найти заказ
     // по webhook-уведомлению от платёжного провайдера (см. PaymentsController).

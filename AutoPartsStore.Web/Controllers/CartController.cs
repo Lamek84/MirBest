@@ -119,7 +119,7 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Checkout()
+    public async Task<IActionResult> Checkout(string deliveryMethod)
     {
         // Заказывать может только вошедший пользователь — гостя отправляем
         // на вход/регистрацию и возвращаем обратно в корзину (не на сам
@@ -128,6 +128,13 @@ public class CartController : Controller
         {
             TempData["CartMessage"] = "Bitte melde dich an oder registriere dich, um die Bestellung abzuschließen.";
             return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Cart") });
+        }
+
+        var delivery = DeliveryOptions.GetByCode(deliveryMethod);
+        if (delivery is null)
+        {
+            TempData["CartMessage"] = "Bitte wähle eine gültige Versandart aus.";
+            return RedirectToAction(nameof(Index));
         }
 
         var userId = _userManager.GetUserId(User)!;
@@ -143,7 +150,10 @@ public class CartController : Controller
             UserId = userId,
             OrderDate = DateTime.UtcNow,
             Status = OrderStatus.PendingPayment,
-            TotalAmount = items.Sum(i => i.Quantity * i.Product!.Price)
+            DeliveryMethod = delivery.Code,
+            DeliveryLabel = delivery.DisplayName,
+            DeliveryCost = delivery.Price,
+            TotalAmount = items.Sum(i => i.Quantity * i.Product!.Price) + delivery.Price
         };
 
         foreach (var item in items)
