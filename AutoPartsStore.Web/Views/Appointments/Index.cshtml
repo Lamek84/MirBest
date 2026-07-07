@@ -1,0 +1,54 @@
+@model IReadOnlyList<Appointment>
+@{
+    ViewData["Title"] = "Terminanfragen";
+}
+<h1>Terminanfragen</h1>
+
+@if (!Model.Any())
+{
+    <p>Noch keine Terminanfragen vorhanden.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Zeitfenster</th>
+                <th>Name</th>
+                <th>Kontakt</th>
+                <th>Fahrzeug</th>
+                <th>Leistung</th>
+                <th>Nachricht</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var appointment in Model)
+        {
+            <tr>
+                <td>@appointment.PreferredDate.ToString("dd.MM.yyyy")</td>
+                <td>@appointment.TimeSlot</td>
+                <td>@appointment.Name</td>
+                <td>@appointment.Phone<br />@appointment.Email</td>
+                <td>@appointment.VehicleInfo</td>
+                <td>@appointment.ServiceType</td>
+                <td>@appointment.Message</td>
+                <td>@appointment.Status</td>
+                <td>
+                    @if (appointment.Status == AppointmentStatus.New)
+                    {
+                        <form asp-action="Confirm" asp-route-id="@appointment.Id" method="post" class="inline-form">
+                            <button type="submit" class="btn">Bestätigen</button>
+                        </form>
+                        <form asp-action="Cancel" asp-route-id="@appointment.Id" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-danger">Ablehnen</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

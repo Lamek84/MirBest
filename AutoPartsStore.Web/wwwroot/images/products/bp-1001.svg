@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
+<rect x="0" y="0" width="320" height="220" rx="16" fill="#fdecea"/>
+<circle cx="160" cy="95" r="48" fill="none" stroke="#c0392b" stroke-width="8"/><circle cx="160" cy="95" r="14" fill="#c0392b"/><circle cx="194.0" cy="95.0" r="5" fill="#c0392b"/><circle cx="177.0" cy="124.4" r="5" fill="#c0392b"/><circle cx="143.0" cy="124.4" r="5" fill="#c0392b"/><circle cx="126.0" cy="95.0" r="5" fill="#c0392b"/><circle cx="143.0" cy="65.6" r="5" fill="#c0392b"/><circle cx="177.0" cy="65.6" r="5" fill="#c0392b"/>
+<text x="160" y="185" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#222" text-anchor="middle">Vordere Bremsbeläge</text>
+<text x="160" y="205" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#666" text-anchor="middle">BP-1001</text>
+</svg>

@@ -1,0 +1,63 @@
+@model AppointmentViewModel
+@{
+    ViewData["Title"] = "Termin vereinbaren";
+}
+<h1>Termin vereinbaren</h1>
+<p>Vereinbare einen Termin für Hauptuntersuchung (TÜV), Reparatur oder Wartung deines Fahrzeugs. Wir melden uns zur Bestätigung des Termins bei dir.</p>
+
+@if (TempData["AppointmentSuccess"] != null)
+{
+    <p class="alert-success">Vielen Dank für deine Terminanfrage! Wir melden uns zeitnah, um den Termin zu bestätigen.</p>
+}
+
+<div class="contact-form-wrapper">
+    <form asp-action="Book" method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="Name"></label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Phone"></label>
+            <input asp-for="Phone" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="VehicleInfo"></label>
+            <input asp-for="VehicleInfo" class="form-control" placeholder="z. B. VW Golf, Baujahr 2018" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ServiceType"></label>
+            <select asp-for="ServiceType" asp-items="ViewBag.ServiceTypes" class="form-control">
+                <option value="">-- Leistung wählen --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="PreferredDate"></label>
+            <input asp-for="PreferredDate" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TimeSlot"></label>
+            <select asp-for="TimeSlot" asp-items="ViewBag.TimeSlots" class="form-control">
+                <option value="">-- Zeitfenster wählen --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Message"></label>
+            <textarea asp-for="Message" class="form-control" rows="4"></textarea>
+        </div>
+
+        <button type="submit" class="btn">Termin anfragen</button>
+    </form>
+</div>

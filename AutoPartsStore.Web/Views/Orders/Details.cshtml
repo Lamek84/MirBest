@@ -1,0 +1,48 @@
+@model Order
+@{
+    ViewData["Title"] = $"Bestellung #{Model.Id}";
+}
+<h1>Bestellung #@Model.Id</h1>
+
+@if (TempData["OrderSuccess"] != null)
+{
+    if (Model.Status == OrderStatus.Paid)
+    {
+        <p class="alert-success">Vielen Dank! Deine Zahlung war erfolgreich, die Bestellung ist bestätigt.</p>
+    }
+    else
+    {
+        <p class="alert-success">Deine Bestellung wurde aufgegeben. Wir bestätigen die Zahlung in Kürze.</p>
+    }
+}
+
+<p class="product-meta">Aufgegeben am @Model.OrderDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm") · Status: @Model.Status</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Bezeichnung</th>
+            <th>Preis</th>
+            <th>Menge</th>
+            <th>Summe</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td>@item.ProductName</td>
+            <td>@item.UnitPrice.ToString("N2") €</td>
+            <td>@item.Quantity</td>
+            <td>@((item.UnitPrice * item.Quantity).ToString("N2")) €</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<p class="cart-total">Gesamtsumme: @Model.TotalAmount.ToString("N2") €</p>
+
+<div class="cart-actions">
+    <a asp-controller="Products" asp-action="Index" class="btn">Weiter einkaufen</a>
+    <a asp-action="Index" class="btn btn-secondary">Zurück zu meinen Bestellungen</a>
+</div>

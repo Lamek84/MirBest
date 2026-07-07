@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
+<rect x="0" y="0" width="320" height="220" rx="16" fill="#fef5e7"/>
+<polygon points="150,35 185,35 155,90 180,90 135,155 155,100 130,100" fill="#f39c12"/>
+<text x="160" y="185" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#222" text-anchor="middle">Scheinwerfer</text>
+<text x="160" y="205" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#666" text-anchor="middle">HL-5008</text>
+</svg>

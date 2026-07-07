@@ -1,0 +1,63 @@
+@model IReadOnlyList<CartItem>
+@{
+    ViewData["Title"] = "Warenkorb";
+}
+<h1>Warenkorb</h1>
+
+@if (!Model.Any())
+{
+    <p>Dein Warenkorb ist leer.</p>
+    <p><a asp-controller="Products" asp-action="Index" class="btn">Zum Katalog</a></p>
+}
+else
+{
+    var total = Model.Sum(i => i.Quantity * i.Product!.Price);
+
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Bezeichnung</th>
+                <th>Preis</th>
+                <th>Menge</th>
+                <th>Summe</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><img src="@item.Product!.ImageUrl" alt="@item.Product.Name" class="cart-thumb" /></td>
+                <td>@item.Product.Name</td>
+                <td>@item.Product.Price.ToString("N2") €</td>
+                <td>
+                    <form asp-action="UpdateQuantity" method="post" class="inline-form">
+                        <input type="hidden" name="cartItemId" value="@item.Id" />
+                        <input type="number" name="quantity" value="@item.Quantity" min="1" class="qty-input" />
+                        <button type="submit" class="btn btn-secondary">Aktualisieren</button>
+                    </form>
+                </td>
+                <td>@((item.Quantity * item.Product.Price).ToString("N2")) €</td>
+                <td>
+                    <form asp-action="Remove" method="post" class="inline-form">
+                        <input type="hidden" name="cartItemId" value="@item.Id" />
+                        <button type="submit" class="btn btn-danger icon-btn" title="Entfernen">
+                            <partial name="_Icon" model="@("trash")" />
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <p class="cart-total">Gesamtsumme: @total.ToString("N2") €</p>
+
+    <div class="cart-actions">
+        <form asp-action="Checkout" method="post">
+            <button type="submit" class="btn">Jetzt bezahlen</button>
+        </form>
+        <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">Weiter einkaufen</a>
+    </div>
+}

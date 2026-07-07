@@ -1,0 +1,30 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Anmelden";
+}
+<h1>Anmelden</h1>
+
+<form asp-action="Login" method="post">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Password">Passwort</label>
+        <input asp-for="Password" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>
+            <input asp-for="RememberMe" /> Angemeldet bleiben
+        </label>
+    </div>
+
+    <button type="submit" class="btn">Anmelden</button>
+</form>
+
+<p>Noch kein Konto? <a asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Registrieren</a></p>

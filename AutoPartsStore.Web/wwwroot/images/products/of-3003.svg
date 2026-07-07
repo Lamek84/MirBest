@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
+<rect x="0" y="0" width="320" height="220" rx="16" fill="#eef1f5"/>
+<line x1="200.0" y1="95.0" x2="214.0" y2="95.0" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="188.3" y1="123.3" x2="198.2" y2="133.2" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="160.0" y1="135.0" x2="160.0" y2="149.0" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="131.7" y1="123.3" x2="121.8" y2="133.2" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="120.0" y1="95.0" x2="106.0" y2="95.0" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="131.7" y1="66.7" x2="121.8" y2="56.8" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="160.0" y1="55.0" x2="160.0" y2="41.0" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><line x1="188.3" y1="66.7" x2="198.2" y2="56.8" stroke="#34495e" stroke-width="10" stroke-linecap="round"/><circle cx="160" cy="95" r="40" fill="#34495e"/><circle cx="160" cy="95" r="16" fill="white"/>
+<text x="160" y="185" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#222" text-anchor="middle">Ölfilter</text>
+<text x="160" y="205" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#666" text-anchor="middle">OF-3003</text>
+</svg>

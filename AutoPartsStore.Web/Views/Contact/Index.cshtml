@@ -1,0 +1,49 @@
+@model ContactViewModel
+@{
+    ViewData["Title"] = "Kontakt";
+}
+<h1>Kontakt</h1>
+
+<div class="contact-grid">
+    <div class="contact-info">
+        <h2>Kontaktinformationen</h2>
+        <p><strong>Telefon:</strong> <a href="tel:+4915566446608">+49 15566446608</a></p>
+        <p><strong>E-Mail:</strong> <a href="mailto:info@mirbest.de">info@mirbest.de</a></p>
+        <p><strong>Adresse:</strong> Hinterm Sielhof 4, 28277 Bremen</p>
+        <p>
+            <a href="https://www.facebook.com/mirplusde" target="_blank" rel="noopener">Facebook</a>
+            ·
+            <a href="https://www.instagram.com/mirbest.de/" target="_blank" rel="noopener">Instagram</a>
+        </p>
+    </div>
+
+    <div class="contact-form-wrapper">
+        <h2>Schnelle Kontaktaufnahme</h2>
+
+        @if (TempData["ContactSuccess"] != null)
+        {
+            <p class="alert-success">Vielen Dank für deine Nachricht! Wir melden uns bei dir.</p>
+        }
+
+        <form asp-controller="Contact" asp-action="Index" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Message">Nachricht</label>
+                <textarea asp-for="Message" class="form-control" rows="6"></textarea>
+            </div>
+
+            <button type="submit" class="btn">Nachricht senden</button>
+        </form>
+    </div>
+</div>

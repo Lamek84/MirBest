@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 74">
+<rect x="0" y="0" width="140" height="74" rx="10" fill="#eef0f2" stroke="#b7bec7" stroke-width="1.5" stroke-dasharray="5 4"/>
+<circle cx="70" cy="34" r="16" fill="none" stroke="#b7bec7" stroke-width="4"/>
+<text x="70" y="62" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#8b93a1" text-anchor="middle">Partner 5</text>
+</svg>

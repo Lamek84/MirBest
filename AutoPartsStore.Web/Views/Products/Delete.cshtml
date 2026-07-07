@@ -1,0 +1,21 @@
+@model Product
+@{
+    ViewData["Title"] = "Ersatzteil löschen";
+}
+<h1>Ersatzteil löschen?</h1>
+
+<dl>
+    <dt>Bezeichnung</dt>
+    <dd>@Model.Name</dd>
+    <dt>Artikelnummer</dt>
+    <dd>@Model.PartNumber</dd>
+    <dt>Hersteller</dt>
+    <dd>@Model.Manufacturer</dd>
+    <dt>Preis</dt>
+    <dd>@Model.Price</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <button type="submit" class="btn btn-danger">Löschen</button>
+    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+</form>

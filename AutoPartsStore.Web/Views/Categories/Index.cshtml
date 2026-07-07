@@ -1,0 +1,43 @@
+@model IReadOnlyList<Category>
+@{
+    ViewData["Title"] = "Kategorien verwalten";
+}
+<h1>Kategorien verwalten</h1>
+
+<p><a asp-action="Create" class="btn">Neue Kategorie hinzufügen</a></p>
+
+@if (!Model.Any())
+{
+    <p>Noch keine Kategorien vorhanden.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Beschreibung</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var category in Model)
+        {
+            <tr>
+                <td><img src="@category.ImageUrl" alt="@category.Name" class="cart-thumb" /></td>
+                <td>@category.Name</td>
+                <td>@category.Description</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@category.Id" class="icon-link" title="Bearbeiten">
+                        <partial name="_Icon" model="@("edit")" />
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@category.Id" class="icon-link" title="Löschen">
+                        <partial name="_Icon" model="@("trash")" />
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

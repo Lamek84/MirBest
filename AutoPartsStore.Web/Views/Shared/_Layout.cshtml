@@ -1,0 +1,120 @@
+@inject Microsoft.AspNetCore.Identity.SignInManager<AutoPartsStore.Data.Identity.ApplicationUser> SignInManager
+@inject Microsoft.AspNetCore.Identity.UserManager<AutoPartsStore.Data.Identity.ApplicationUser> UserManager
+@inject AutoPartsStore.Core.Interfaces.ICartItemRepository CartItemRepository
+@{
+    // Корзина есть и у гостей (по cookie), поэтому считаем количество
+    // и для вошедших, и для анонимных пользователей.
+    string? cartOwnerId = SignInManager.IsSignedIn(User)
+        ? UserManager.GetUserId(User)
+        : (Context.Request.Cookies.TryGetValue(CartConstants.GuestCookieName, out var guestCartId) ? guestCartId : null);
+
+    var cartCount = cartOwnerId is not null
+        ? await CartItemRepository.GetItemCountAsync(cartOwnerId)
+        : 0;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MirBest</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-left">
+                <a asp-controller="Home" asp-action="Index" class="brand">
+                    <img src="~/images/logo.svg" alt="MIRBEST" class="site-logo" />
+                </a>
+            </div>
+            <div class="nav-search">
+                <form asp-controller="Products" asp-action="Index" method="get" class="search-form">
+                    <input type="search" name="search" value="@ViewData["CurrentSearch"]" placeholder="Ersatzteile suchen..." class="search-input" />
+                    <button type="submit" class="search-btn" aria-label="Suchen">
+                        <partial name="_Icon" model="@("search")" />
+                    </button>
+                </form>
+            </div>
+            <div class="nav-right">
+                <a asp-controller="Cart" asp-action="Index" class="nav-icon-link" title="Warenkorb">
+                    <partial name="_Icon" model="@("cart")" />
+                    @if (cartCount > 0)
+                    {
+                        <span class="cart-badge">@cartCount</span>
+                    }
+                </a>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <a asp-controller="Orders" asp-action="Index" class="nav-icon-link" title="Meine Bestellungen">
+                        <partial name="_Icon" model="@("list")" />
+                        <span class="icon-label">Meine Bestellungen</span>
+                    </a>
+                    <span>Hallo, @User.Identity!.Name</span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-secondary icon-btn" title="Abmelden">
+                            <partial name="_Icon" model="@("logout")" />
+                            <span class="icon-label">Abmelden</span>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="nav-icon-link" title="Anmelden">
+                        <partial name="_Icon" model="@("user")" />
+                        <span class="icon-label">Anmelden</span>
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="nav-icon-link" title="Registrieren">
+                        <partial name="_Icon" model="@("user-plus")" />
+                        <span class="icon-label">Registrieren</span>
+                    </a>
+                }
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        @if (TempData["CartMessage"] != null)
+        {
+            <p class="alert-success">@TempData["CartMessage"]</p>
+        }
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <h3>MIRBEST GmbH &amp; Co. KG</h3>
+                <p>Wir schaffen Lösungen für Ihren Erfolg</p>
+            </div>
+            <div class="footer-col">
+                <h4>Schnelllinks</h4>
+                <ul>
+                    <li><a asp-controller="Home" asp-action="Index">Startseite</a></li>
+                    <li><a asp-controller="Products" asp-action="Index">Autoteile</a></li>
+                    <li><a asp-controller="Contact" asp-action="Index">Kontakt</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Kontaktinformationen</h4>
+                <p><a href="tel:+4915566446608">+49 15566446608</a></p>
+                <p><a href="mailto:info@mirbest.de">info@mirbest.de</a></p>
+                <p>Hinterm Sielhof 4, 28277 Bremen</p>
+            </div>
+            <div class="footer-col">
+                <h4>Soziale Medien</h4>
+                <p>
+                    <a href="https://www.facebook.com/mirplusde" target="_blank" rel="noopener">Facebook</a>
+                    <a href="https://www.instagram.com/mirbest.de/" target="_blank" rel="noopener">Instagram</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                &copy; 2026 MIRBEST GmbH &amp; Co. KG. Alle Rechte vorbehalten.
+            </div>
+        </div>
+    </footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

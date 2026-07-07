@@ -1,0 +1,34 @@
+## .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+TestResults/
+publish/
+*.publishsettings
+
+## NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+## Rider
+.idea/
+
+## VS Code
+.vscode/
+
+## Database
+*.mdf
+*.ldf
+*.ndf
+
+## User-specific / секреты
+appsettings.*.local.json
+*.pfx
+secrets.json

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
+<rect x="0" y="0" width="320" height="220" rx="16" fill="#f4ecf7"/>
+<rect x="90" y="85" width="140" height="40" rx="14" fill="#8e44ad"/><path d="M 120 85 Q 140 55 170 55 L 195 85 Z" fill="#8e44ad"/><circle cx="120" cy="128" r="14" fill="#2c2c2c"/><circle cx="200" cy="128" r="14" fill="#2c2c2c"/>
+<text x="160" y="185" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#222" text-anchor="middle">Außenspiegel</text>
+<text x="160" y="205" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#666" text-anchor="middle">MR-6009</text>
+</svg>

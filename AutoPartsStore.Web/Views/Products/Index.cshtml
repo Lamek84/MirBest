@@ -1,0 +1,84 @@
+@model IReadOnlyList<Product>
+@{
+    ViewData["Title"] = ViewData["CategoryName"] as string ?? "Ersatzteilkatalog";
+}
+<h1>@(ViewData["CategoryName"] as string ?? "Ersatzteilkatalog")</h1>
+
+<p><a asp-action="Index">Alle Kategorien</a></p>
+
+<form asp-action="Index" method="get" class="filter-form">
+    <input type="hidden" name="categoryId" value="@ViewData["CurrentCategoryId"]" />
+
+    <div class="filter-field">
+        <label for="search">Suche</label>
+        <input type="text" id="search" name="search" value="@ViewData["CurrentSearch"]" placeholder="Name oder Artikelnummer" class="form-control" />
+    </div>
+
+    <div class="filter-field">
+        <label for="manufacturer">Hersteller</label>
+        <select id="manufacturer" name="manufacturer" asp-items="ViewBag.Manufacturers" class="form-control">
+            <option value="">Alle</option>
+        </select>
+    </div>
+
+    <div class="filter-field">
+        <label for="minPrice">Preis von</label>
+        <input type="number" id="minPrice" name="minPrice" value="@ViewData["CurrentMinPrice"]" step="0.01" min="0" class="form-control" />
+    </div>
+
+    <div class="filter-field">
+        <label for="maxPrice">Preis bis</label>
+        <input type="number" id="maxPrice" name="maxPrice" value="@ViewData["CurrentMaxPrice"]" step="0.01" min="0" class="form-control" />
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit" class="btn">Filtern</button>
+        <a asp-action="Index" asp-route-categoryId="@ViewData["CurrentCategoryId"]" class="btn btn-secondary">Zurücksetzen</a>
+    </div>
+</form>
+
+@if (User.IsInRole("Admin"))
+{
+    <p><a asp-action="Create" class="btn">Neues Ersatzteil hinzufügen</a></p>
+}
+
+@if (!Model.Any())
+{
+    <p>Keine Ersatzteile gefunden. Passe ggf. die Filter an.</p>
+}
+else
+{
+    <div class="card-grid">
+        @foreach (var p in Model)
+        {
+            <div class="product-card">
+                <img src="@p.ImageUrl" alt="@p.Name" />
+                <h3>@p.Name</h3>
+                <p class="product-meta">Art.-Nr. @p.PartNumber · @p.Manufacturer</p>
+                <p class="product-price">@p.Price.ToString("N2") €</p>
+                <p class="product-meta">Bestand: @p.StockQuantity</p>
+
+                <form asp-controller="Cart" asp-action="Add" method="post" class="add-to-cart-form">
+                    <input type="hidden" name="productId" value="@p.Id" />
+                    <input type="number" name="quantity" value="1" min="1" class="qty-input" />
+                    <button type="submit" class="btn icon-btn">
+                        <partial name="_Icon" model="@("cart")" />
+                        <span>In den Warenkorb</span>
+                    </button>
+                </form>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <p>
+                        <a asp-action="Edit" asp-route-id="@p.Id" class="icon-link" title="Bearbeiten">
+                            <partial name="_Icon" model="@("edit")" />
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@p.Id" class="icon-link" title="Löschen">
+                            <partial name="_Icon" model="@("trash")" />
+                        </a>
+                    </p>
+                }
+            </div>
+        }
+    </div>
+}
