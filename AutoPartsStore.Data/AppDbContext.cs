@@ -16,6 +16,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<VehicleMake> VehicleMakes => Set<VehicleMake>();
+    public DbSet<VehicleModel> VehicleModels => Set<VehicleModel>();
+    public DbSet<ProductVehicleFitment> ProductVehicleFitments => Set<ProductVehicleFitment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

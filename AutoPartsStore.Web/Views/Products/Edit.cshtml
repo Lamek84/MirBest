@@ -52,3 +52,87 @@
     <button type="submit" class="btn">Speichern</button>
     <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
 </form>
+
+<section class="fitment-section">
+    <h2>Fahrzeug-Kompatibilität</h2>
+
+    @if (TempData["FitmentError"] != null)
+    {
+        <p class="text-danger">@TempData["FitmentError"]</p>
+    }
+
+    @{
+        var fitments = ViewBag.Fitments as IReadOnlyList<ProductVehicleFitment>;
+    }
+
+    @if (fitments is null || !fitments.Any())
+    {
+        <p class="product-meta">Noch keine passenden Fahrzeuge hinterlegt.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Marke</th>
+                    <th>Modell</th>
+                    <th>Baujahre</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var fitment in fitments)
+            {
+                <tr>
+                    <td>@fitment.VehicleModel?.VehicleMake?.Name</td>
+                    <td>@fitment.VehicleModel?.Name</td>
+                    <td>
+                        @if (fitment.YearFrom is null && fitment.YearTo is null)
+                        {
+                            <span>alle Baujahre</span>
+                        }
+                        else
+                        {
+                            <span>@(fitment.YearFrom?.ToString() ?? "…") – @(fitment.YearTo?.ToString() ?? "…")</span>
+                        }
+                    </td>
+                    <td>
+                        <form asp-action="RemoveFitment" method="post" class="inline-form">
+                            <input type="hidden" name="id" value="@fitment.Id" />
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-danger icon-btn" title="Entfernen">
+                                <partial name="_Icon" model="@("trash")" />
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+
+    <form asp-action="AddFitment" method="post" class="fitment-add-form">
+        <input type="hidden" name="productId" value="@Model.Id" />
+
+        <div class="form-group">
+            <label>Fahrzeugmodell</label>
+            <select name="vehicleModelId" asp-items="ViewBag.VehicleModelId" class="form-control">
+                <option value="">-- Modell wählen --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Baujahr von (optional)</label>
+            <input type="number" name="yearFrom" class="form-control" min="1950" max="2100" placeholder="z. B. 2015" />
+        </div>
+
+        <div class="form-group">
+            <label>Baujahr bis (optional)</label>
+            <input type="number" name="yearTo" class="form-control" min="1950" max="2100" placeholder="z. B. 2020" />
+        </div>
+
+        <button type="submit" class="btn">Fahrzeug hinzufügen</button>
+    </form>
+
+    <p class="product-meta">Verfügbare Marken/Modelle fehlen? <a asp-controller="VehicleMakes" asp-action="Index">Marken verwalten</a> · <a asp-controller="VehicleModels" asp-action="Index">Modelle verwalten</a></p>
+</section>

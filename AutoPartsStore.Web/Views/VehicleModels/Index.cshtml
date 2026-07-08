@@ -1,0 +1,44 @@
+@model IReadOnlyList<VehicleModel>
+@{
+    ViewData["Title"] = "Fahrzeugmodelle verwalten";
+}
+<h1>Fahrzeugmodelle verwalten</h1>
+
+<p>
+    <a asp-action="Create" class="btn">Neues Modell hinzufügen</a>
+    <a asp-controller="VehicleMakes" asp-action="Index" class="btn btn-secondary">Zu den Marken</a>
+</p>
+
+@if (!Model.Any())
+{
+    <p>Noch keine Modelle vorhanden.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Marke</th>
+                <th>Modell</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var vehicleModel in Model)
+        {
+            <tr>
+                <td>@vehicleModel.VehicleMake?.Name</td>
+                <td>@vehicleModel.Name</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@vehicleModel.Id" class="icon-link" title="Bearbeiten">
+                        <partial name="_Icon" model="@("edit")" />
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@vehicleModel.Id" class="icon-link" title="Löschen">
+                        <partial name="_Icon" model="@("trash")" />
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

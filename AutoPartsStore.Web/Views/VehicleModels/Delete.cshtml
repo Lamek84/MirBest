@@ -1,0 +1,19 @@
+@model VehicleModel
+@{
+    ViewData["Title"] = "Modell löschen";
+}
+<h1>Modell löschen?</h1>
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<dl>
+    <dt>Marke</dt>
+    <dd>@Model.VehicleMake?.Name</dd>
+    <dt>Modell</dt>
+    <dd>@Model.Name</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <button type="submit" class="btn btn-danger">Löschen</button>
+    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+</form>

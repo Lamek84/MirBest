@@ -11,6 +11,10 @@
     var cartCount = cartOwnerId is not null
         ? await CartItemRepository.GetItemCountAsync(cartOwnerId)
         : 0;
+
+    // Баннер про cookies показываем, пока пользователь его не подтвердил
+    // (см. cookie "CookieConsent", выставляется в JS внизу страницы).
+    var cookieConsentGiven = Context.Request.Cookies.ContainsKey("CookieConsent");
 }
 <!DOCTYPE html>
 <html lang="ru">
@@ -82,39 +86,57 @@
         </main>
     </div>
     <footer>
-        <div class="container footer-grid">
+        <div class="container footer-simple">
             <div class="footer-col">
                 <h3>MIRBEST GmbH &amp; Co. KG</h3>
                 <p>Wir schaffen Lösungen für Ihren Erfolg</p>
             </div>
-            <div class="footer-col">
-                <h4>Schnelllinks</h4>
-                <ul>
-                    <li><a asp-controller="Home" asp-action="Index">Startseite</a></li>
-                    <li><a asp-controller="Products" asp-action="Index">Autoteile</a></li>
-                    <li><a asp-controller="Contact" asp-action="Index">Kontakt</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Kontaktinformationen</h4>
-                <p><a href="tel:+4915566446608">+49 15566446608</a></p>
-                <p><a href="mailto:info@mirbest.de">info@mirbest.de</a></p>
-                <p>Hinterm Sielhof 4, 28277 Bremen</p>
-            </div>
-            <div class="footer-col">
-                <h4>Soziale Medien</h4>
-                <p>
-                    <a href="https://www.facebook.com/mirplusde" target="_blank" rel="noopener">Facebook</a>
-                    <a href="https://www.instagram.com/mirbest.de/" target="_blank" rel="noopener">Instagram</a>
-                </p>
+            <div class="footer-social">
+                <a href="https://www.facebook.com/mirplusde" target="_blank" rel="noopener" class="icon-link" title="Facebook">
+                    <partial name="_Icon" model="@("facebook")" />
+                </a>
+                <a href="https://www.instagram.com/mirbest.de/" target="_blank" rel="noopener" class="icon-link" title="Instagram">
+                    <partial name="_Icon" model="@("instagram")" />
+                </a>
             </div>
         </div>
         <div class="footer-bottom">
-            <div class="container">
-                &copy; 2026 MIRBEST GmbH &amp; Co. KG. Alle Rechte vorbehalten.
+            <div class="container footer-bottom-inner">
+                <span>&copy; 2026 MIRBEST GmbH &amp; Co. KG. Alle Rechte vorbehalten.</span>
+                <span class="footer-legal-links">
+                    <a asp-controller="Contact" asp-action="Index">Kontakt</a>
+                    <a asp-controller="Legal" asp-action="Impressum">Impressum</a>
+                    <a asp-controller="Legal" asp-action="Datenschutz">Datenschutz</a>
+                </span>
             </div>
         </div>
     </footer>
+
+    @if (!cookieConsentGiven)
+    {
+        <div id="cookie-banner" class="cookie-banner">
+            <p>
+                Diese Website verwendet ausschließlich technisch notwendige Cookies (z. B. für Warenkorb und Anmeldung).
+                Es werden keine Tracking- oder Marketing-Cookies eingesetzt.
+                <a asp-controller="Legal" asp-action="Datenschutz">Mehr erfahren</a>
+            </p>
+            <button type="button" id="cookie-banner-accept" class="btn">Verstanden</button>
+        </div>
+    }
+
+    <script>
+        var cookieBannerAccept = document.getElementById('cookie-banner-accept');
+        if (cookieBannerAccept) {
+            cookieBannerAccept.addEventListener('click', function () {
+                document.cookie = 'CookieConsent=1; path=/; max-age=' + (60 * 60 * 24 * 365);
+                var banner = document.getElementById('cookie-banner');
+                if (banner) {
+                    banner.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

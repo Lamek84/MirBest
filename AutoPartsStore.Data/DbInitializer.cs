@@ -2,6 +2,7 @@ using AutoPartsStore.Core.Entities;
 using AutoPartsStore.Data.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace AutoPartsStore.Data;
 
@@ -10,10 +11,42 @@ public static class DbInitializer
     public static async Task SeedAsync(
         AppDbContext context,
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager)
+        RoleManager<IdentityRole> roleManager,
+        IConfiguration configuration
+        )
     {
-        await SeedIdentityAsync(userManager, roleManager);
+        // Создаёт/обновляет схему БД по миграциям. На пустой базе построит все таблицы.
+        await context.Database.MigrateAsync();
+
+        await SeedIdentityAsync(userManager, roleManager, configuration);
         await SeedCatalogAsync(context);
+        await SeedVehicleMakesAsync(context);
+    }
+
+    // Список известных марок для справочника "подобрать деталь под мою машину".
+    // Модели заводятся отдельно через админку по мере необходимости.
+    private static async Task SeedVehicleMakesAsync(AppDbContext context)
+    {
+        string[] makes =
+        {
+            "Volkswagen", "Audi", "BMW", "Mercedes-Benz", "Opel", "Porsche", "Mini", "Smart",
+            "Ford", "Skoda", "Seat", "Renault", "Peugeot", "Citroën", "Fiat", "Alfa Romeo", "Lancia",
+            "Toyota", "Honda", "Nissan", "Mazda", "Mitsubishi", "Suzuki", "Subaru",
+            "Hyundai", "Kia", "Volvo", "Saab", "Land Rover", "Jaguar",
+            "Chevrolet", "Chrysler", "Jeep", "Dodge", "Dacia", "Lada", "Tesla",
+            "Lexus", "Infiniti", "Bentley", "Maserati", "Ferrari", "Lamborghini", "Rolls-Royce", "DS Automobiles"
+        };
+
+        foreach (var name in makes)
+        {
+            var exists = await context.VehicleMakes.AnyAsync(m => m.Name == name);
+            if (!exists)
+            {
+                context.VehicleMakes.Add(new VehicleMake { Name = name });
+            }
+        }
+
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedCatalogAsync(AppDbContext context)
@@ -88,7 +121,7 @@ public static class DbInitializer
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedIdentityAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    private static async Task SeedIdentityAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
     {
         string[] roles = { "Admin", "Customer" };
         foreach (var role in roles)
@@ -99,8 +132,11 @@ public static class DbInitializer
             }
         }
 
-        const string adminEmail = "admin@autopartsstore.local";
-        const string adminPassword = "Admin123";
+        var adminEmail = configuration["SeedAdmin:Email"];
+        var adminPassword = configuration["SeedAdmin:Password"];
+        
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+            return;
 
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser is null)

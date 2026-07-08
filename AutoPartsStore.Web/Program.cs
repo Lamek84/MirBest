@@ -29,7 +29,9 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    await DbInitializer.SeedAsync(context, userManager, roleManager);
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+    await DbInitializer.SeedAsync(context, userManager, roleManager, configuration);
 }
 
 if (!app.Environment.IsDevelopment())
