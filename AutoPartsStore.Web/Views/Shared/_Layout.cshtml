@@ -55,6 +55,9 @@
                         <span class="icon-label">Meine Bestellungen</span>
                     </a>
                     <span>Hallo, @User.Identity!.Name</span>
+                    <a asp-controller="Account" asp-action="ChangePassword" class="nav-icon-link" title="Passwort ändern">
+                        <span class="icon-label">Passwort ändern</span>
+                    </a>
                     <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline">
                         <button type="submit" class="btn btn-secondary icon-btn" title="Abmelden">
                             <partial name="_Icon" model="@("logout")" />
