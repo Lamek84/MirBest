@@ -153,6 +153,19 @@ public class CartController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        // Проверка остатков перед созданием заказа: между добавлением в корзину
+        // и оформлением товар мог закончиться (в т.ч. из-за другого покупателя).
+        var insufficientStock = items
+            .Where(i => i.Product is not null && i.Quantity > i.Product.StockQuantity)
+            .ToList();
+
+        if (insufficientStock.Any())
+        {
+            var names = string.Join(", ", insufficientStock.Select(i => i.Product!.Name));
+            TempData["CartMessage"] = $"Nicht genug Bestand für: {names}. Bitte Menge anpassen.";
+            return RedirectToAction(nameof(Index));
+        }
+
         var user = await _userManager.FindByIdAsync(userId);
         var subtotal = items.Sum(i => i.Quantity * i.Product!.Price);
 

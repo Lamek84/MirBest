@@ -9,7 +9,7 @@ public class RegisterViewModel
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Passwort ist erforderlich.")]
-    [StringLength(100, MinimumLength = 6, ErrorMessage = "Passwort muss mindestens 6 Zeichen haben.")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Passwort muss mindestens 8 Zeichen haben, mit Groß-/Kleinbuchstabe, Ziffer und Sonderzeichen.")]
     [DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
 

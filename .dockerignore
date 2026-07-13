@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/publish/
+**/.vs/
+**/.git/
+**/.github/
+**/TestResults/
+**/*.user
+**/*.suo
+**/appsettings.Development.json
+Dockerfile
+.dockerignore
+README.md

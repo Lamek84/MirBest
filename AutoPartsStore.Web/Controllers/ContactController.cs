@@ -2,6 +2,7 @@ using AutoPartsStore.Core.Entities;
 using AutoPartsStore.Core.Interfaces;
 using AutoPartsStore.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AutoPartsStore.Web.Controllers;
 
@@ -32,6 +33,7 @@ public class ContactController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("FormPolicy")]
     public async Task<IActionResult> Index(ContactViewModel model)
     {
         if (!ModelState.IsValid)

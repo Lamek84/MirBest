@@ -4,6 +4,7 @@ using AutoPartsStore.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AutoPartsStore.Web.Controllers;
 
@@ -36,6 +37,7 @@ public class AppointmentsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("FormPolicy")]
     public async Task<IActionResult> Book(AppointmentViewModel model)
     {
         if (model.PreferredDate.Date < DateTime.Today)

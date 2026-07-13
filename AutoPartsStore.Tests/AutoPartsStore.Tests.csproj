@@ -13,12 +13,15 @@
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
+    <PackageReference Include="Moq" Version="4.20.72" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AutoPartsStore.Core\AutoPartsStore.Core.csproj" />
     <ProjectReference Include="..\AutoPartsStore.Infrastructure\AutoPartsStore.Infrastructure.csproj" />
     <ProjectReference Include="..\AutoPartsStore.Data\AutoPartsStore.Data.csproj" />
+    <ProjectReference Include="..\AutoPartsStore.Web\AutoPartsStore.Web.csproj" />
   </ItemGroup>
 
 </Project>

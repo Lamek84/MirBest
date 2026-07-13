@@ -15,21 +15,27 @@ public class PaymentsController : Controller
 {
     private readonly IOrderRepository _orderRepository;
     private readonly ICartItemRepository _cartItemRepository;
+    private readonly IProductRepository _productRepository;
     private readonly IPaymentService _paymentService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<PaymentsController> _logger;
 
     public PaymentsController(
         IOrderRepository orderRepository,
         ICartItemRepository cartItemRepository,
+        IProductRepository productRepository,
         IPaymentService paymentService,
         UserManager<ApplicationUser> userManager,
+        IUnitOfWork unitOfWork,
         ILogger<PaymentsController> logger)
     {
         _orderRepository = orderRepository;
         _cartItemRepository = cartItemRepository;
+        _productRepository = productRepository;
         _paymentService = paymentService;
         _userManager = userManager;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -124,33 +130,58 @@ public class PaymentsController : Controller
 
     private async Task MarkOrderPaidAsync(Order order)
     {
-        order.Status = OrderStatus.Paid;
-
-        // Bonuspunkte-Programm: 1 Punkt je bezahltem Euro (abgerundet).
-        order.PointsEarned = (int)Math.Floor(order.TotalAmount);
-        _orderRepository.Update(order);
-        await _orderRepository.SaveChangesAsync();
-
-        if (order.PointsEarned > 0)
+        // Статус заказа, списание склада, начисление баллов и очистка корзины
+        // должны либо примениться все вместе, либо не примениться вовсе —
+        // иначе при сбое между шагами получим, например, оплаченный заказ
+        // без начисленных баллов. Все репозитории/UserManager здесь работают
+        // на одном и том же AppDbContext (он Scoped на HTTP-запрос), поэтому
+        // одна транзакция вокруг всех SaveChangesAsync ниже действительно
+        // атомарна на стороне БД.
+        await _unitOfWork.ExecuteInTransactionAsync(async () =>
         {
-            var user = await _userManager.FindByIdAsync(order.UserId);
-            if (user is not null)
-            {
-                user.BonusPoints += order.PointsEarned;
-                await _userManager.UpdateAsync(user);
-            }
-        }
+            order.Status = OrderStatus.Paid;
 
-        // Заказ оплачен — теперь можно безопасно очистить корзину покупателя
-        // (до этого момента мы её нарочно не трогали, см. CartController.Checkout).
-        var cartItems = await _cartItemRepository.GetByUserAsync(order.UserId);
-        if (cartItems.Any())
-        {
-            foreach (var item in cartItems)
+            // Bonuspunkte-Programm: 1 Punkt je bezahltem Euro (abgerundet).
+            order.PointsEarned = (int)Math.Floor(order.TotalAmount);
+            _orderRepository.Update(order);
+            await _orderRepository.SaveChangesAsync();
+
+            // Bestand erst jetzt reduzieren — nur bei bestätigter Zahlung, nicht
+            // schon bei der Bestellerstellung (siehe CartController.Checkout).
+            // Kann bei Überbuchung (Race zwischen mehreren Käufern) auf 0 fallen,
+            // wird aber nie negativ.
+            foreach (var item in order.Items)
             {
-                _cartItemRepository.Remove(item);
+                var product = await _productRepository.GetByIdAsync(item.ProductId);
+                if (product is not null)
+                {
+                    product.StockQuantity = Math.Max(0, product.StockQuantity - item.Quantity);
+                    _productRepository.Update(product);
+                }
             }
-            await _cartItemRepository.SaveChangesAsync();
-        }
+            await _productRepository.SaveChangesAsync();
+
+            if (order.PointsEarned > 0)
+            {
+                var user = await _userManager.FindByIdAsync(order.UserId);
+                if (user is not null)
+                {
+                    user.BonusPoints += order.PointsEarned;
+                    await _userManager.UpdateAsync(user);
+                }
+            }
+
+            // Заказ оплачен — теперь можно безопасно очистить корзину покупателя
+            // (до этого момента мы её нарочно не трогали, см. CartController.Checkout).
+            var cartItems = await _cartItemRepository.GetByUserAsync(order.UserId);
+            if (cartItems.Any())
+            {
+                foreach (var item in cartItems)
+                {
+                    _cartItemRepository.Remove(item);
+                }
+                await _cartItemRepository.SaveChangesAsync();
+            }
+        });
     }
 }

@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Fast geschafft";
+    var email = ViewData["Email"] as string;
+}
+<h1>Fast geschafft!</h1>
+<p>
+    Wir haben eine Bestätigungsmail an <strong>@email</strong> gesendet.
+    Bitte klicke auf den Link darin, um dein Konto zu aktivieren.
+</p>
+<p>
+    Keine E-Mail bekommen? <a asp-action="ResendConfirmation">Bestätigungsmail erneut senden</a>.
+</p>
+<a asp-controller="Home" asp-action="Index" class="btn">Zur Startseite</a>

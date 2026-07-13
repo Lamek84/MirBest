@@ -1,0 +1,16 @@
+@model bool
+@{
+    ViewData["Title"] = "E-Mail-Bestätigung";
+}
+@if (Model)
+{
+    <h1>E-Mail bestätigt</h1>
+    <p>Dein Konto ist jetzt aktiv. Du kannst dich anmelden.</p>
+    <a asp-action="Login" class="btn">Zur Anmeldung</a>
+}
+else
+{
+    <h1>Bestätigung fehlgeschlagen</h1>
+    <p>Der Link ist ungültig oder abgelaufen.</p>
+    <a asp-action="ResendConfirmation" class="btn">Neuen Link anfordern</a>
+}

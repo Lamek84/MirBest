@@ -28,7 +28,11 @@ publish/
 *.ldf
 *.ndf
 
+## Logs (Serilog file sink)
+logs/
+
 ## User-specific / секреты
 appsettings.*.local.json
 *.pfx
 secrets.json
+.env

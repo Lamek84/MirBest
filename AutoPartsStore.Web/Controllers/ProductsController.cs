@@ -1,5 +1,6 @@
 using AutoPartsStore.Core.Entities;
 using AutoPartsStore.Core.Interfaces;
+using AutoPartsStore.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -57,19 +58,33 @@ public class ProductsController : Controller
     public async Task<IActionResult> Create()
     {
         await PopulateCategoriesAsync();
-        return View();
+        return View(new ProductViewModel());
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Product product)
+    public async Task<IActionResult> Create(ProductViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            await PopulateCategoriesAsync(product.CategoryId);
-            return View(product);
+            await PopulateCategoriesAsync(model.CategoryId);
+            return View(model);
         }
+
+        // Явный маппинг ViewModel → Entity: форма не может проставить ничего,
+        // кроме перечисленных здесь полей (защита от overposting).
+        var product = new Product
+        {
+            Name = model.Name,
+            Description = model.Description,
+            PartNumber = model.PartNumber,
+            Manufacturer = model.Manufacturer,
+            Price = model.Price,
+            StockQuantity = model.StockQuantity,
+            CategoryId = model.CategoryId,
+            ImageUrl = model.ImageUrl
+        };
 
         await _productRepository.AddAsync(product);
         await _productRepository.SaveChangesAsync();
@@ -85,27 +100,57 @@ public class ProductsController : Controller
             return NotFound();
         }
 
+        var model = new ProductViewModel
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            PartNumber = product.PartNumber,
+            Manufacturer = product.Manufacturer,
+            Price = product.Price,
+            StockQuantity = product.StockQuantity,
+            CategoryId = product.CategoryId,
+            ImageUrl = product.ImageUrl
+        };
+
         await PopulateCategoriesAsync(product.CategoryId);
         await PopulateFitmentDataAsync(id);
-        return View(product);
+        return View(model);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Product product)
+    public async Task<IActionResult> Edit(int id, ProductViewModel model)
     {
-        if (id != product.Id)
+        if (id != model.Id)
         {
             return BadRequest();
         }
 
         if (!ModelState.IsValid)
         {
-            await PopulateCategoriesAsync(product.CategoryId);
+            await PopulateCategoriesAsync(model.CategoryId);
             await PopulateFitmentDataAsync(id);
-            return View(product);
+            return View(model);
         }
+
+        // Дозагружаем существующую сущность и переносим только разрешённые
+        // поля — вместо биндинга формы напрямую в отслеживаемую EF-сущность.
+        var product = await _productRepository.GetByIdAsync(id);
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        product.Name = model.Name;
+        product.Description = model.Description;
+        product.PartNumber = model.PartNumber;
+        product.Manufacturer = model.Manufacturer;
+        product.Price = model.Price;
+        product.StockQuantity = model.StockQuantity;
+        product.CategoryId = model.CategoryId;
+        product.ImageUrl = model.ImageUrl;
 
         _productRepository.Update(product);
         await _productRepository.SaveChangesAsync();
