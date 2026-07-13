@@ -35,6 +35,14 @@ public class CartController : Controller
     {
         var ownerId = GetCartOwnerId();
         var items = await _cartItemRepository.GetByUserAsync(ownerId);
+
+        ViewBag.BonusPoints = 0;
+        if (User.Identity!.IsAuthenticated)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.BonusPoints = user?.BonusPoints ?? 0;
+        }
+
         return View(items);
     }
 
@@ -119,7 +127,7 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Checkout(string deliveryMethod)
+    public async Task<IActionResult> Checkout(string deliveryMethod, int pointsToRedeem = 0)
     {
         // Заказывать может только вошедший пользователь — гостя отправляем
         // на вход/регистрацию и возвращаем обратно в корзину (не на сам
@@ -145,6 +153,29 @@ public class CartController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        var user = await _userManager.FindByIdAsync(userId);
+        var subtotal = items.Sum(i => i.Quantity * i.Product!.Price);
+
+        // Bonuspunkte einlösen: 100 Punkte = 1 €. Nie mehr, als der Kunde hat,
+        // und die Bestellung darf durch den Rabatt nicht unter 1 € fallen
+        // (Mindestbetrag für die Kartenzahlung bei Stripe).
+        var pointsUsed = 0;
+        var pointsDiscount = 0m;
+        if (pointsToRedeem > 0 && user is not null && user.BonusPoints > 0)
+        {
+            pointsUsed = Math.Min(pointsToRedeem, user.BonusPoints);
+            var maxDiscount = Math.Max(0m, subtotal + delivery.Price - 1.00m);
+            pointsDiscount = Math.Min(pointsUsed / 100m, maxDiscount);
+            pointsUsed = (int)Math.Floor(pointsDiscount * 100m);
+            pointsDiscount = pointsUsed / 100m;
+
+            if (pointsUsed > 0)
+            {
+                user.BonusPoints -= pointsUsed;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
         var order = new Order
         {
             UserId = userId,
@@ -153,7 +184,9 @@ public class CartController : Controller
             DeliveryMethod = delivery.Code,
             DeliveryLabel = delivery.DisplayName,
             DeliveryCost = delivery.Price,
-            TotalAmount = items.Sum(i => i.Quantity * i.Product!.Price) + delivery.Price
+            PointsRedeemed = pointsUsed,
+            PointsDiscount = pointsDiscount,
+            TotalAmount = subtotal + delivery.Price - pointsDiscount
         };
 
         foreach (var item in items)
@@ -196,6 +229,13 @@ public class CartController : Controller
             order.Status = OrderStatus.PaymentFailed;
             _orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
+
+            // Списанные баллы возвращаем — оплата так и не была инициирована.
+            if (pointsUsed > 0 && user is not null)
+            {
+                user.BonusPoints += pointsUsed;
+                await _userManager.UpdateAsync(user);
+            }
 
             TempData["CartMessage"] = "Online-Zahlung ist derzeit nicht verfügbar. Bitte versuche es später erneut.";
             return RedirectToAction(nameof(Index));

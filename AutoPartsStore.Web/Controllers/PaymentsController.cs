@@ -73,6 +73,17 @@ public class PaymentsController : Controller
             order.Status = OrderStatus.Cancelled;
             _orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
+
+            // Bezahlung kam nicht zustande — eingelöste Bonuspunkte zurückerstatten.
+            if (order.PointsRedeemed > 0)
+            {
+                var user = await _userManager.FindByIdAsync(order.UserId);
+                if (user is not null)
+                {
+                    user.BonusPoints += order.PointsRedeemed;
+                    await _userManager.UpdateAsync(user);
+                }
+            }
         }
 
         TempData["CartMessage"] = "Die Zahlung wurde abgebrochen. Deine Artikel sind noch im Warenkorb.";
@@ -114,8 +125,21 @@ public class PaymentsController : Controller
     private async Task MarkOrderPaidAsync(Order order)
     {
         order.Status = OrderStatus.Paid;
+
+        // Bonuspunkte-Programm: 1 Punkt je bezahltem Euro (abgerundet).
+        order.PointsEarned = (int)Math.Floor(order.TotalAmount);
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
+
+        if (order.PointsEarned > 0)
+        {
+            var user = await _userManager.FindByIdAsync(order.UserId);
+            if (user is not null)
+            {
+                user.BonusPoints += order.PointsEarned;
+                await _userManager.UpdateAsync(user);
+            }
+        }
 
         // Заказ оплачен — теперь можно безопасно очистить корзину покупателя
         // (до этого момента мы её нарочно не трогали, см. CartController.Checkout).

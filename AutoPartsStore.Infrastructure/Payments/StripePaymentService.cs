@@ -70,6 +70,25 @@ public class StripePaymentService : IPaymentService
             LineItems = lineItems
         };
 
+        // Bonuspunkte-Rabatt: Stripe erlaubt keine negativen line items, daher
+        // erstellen wir einen einmaligen Coupon in Höhe des Rabatts.
+        if (order.PointsDiscount > 0)
+        {
+            var couponService = new CouponService();
+            var coupon = await couponService.CreateAsync(new CouponCreateOptions
+            {
+                AmountOff = (long)Math.Round(order.PointsDiscount * 100, MidpointRounding.AwayFromZero),
+                Currency = _settings.Currency,
+                Duration = "once",
+                Name = "Bonuspunkte-Rabatt"
+            });
+
+            options.Discounts = new List<SessionDiscountOptions>
+            {
+                new SessionDiscountOptions { Coupon = coupon.Id }
+            };
+        }
+
         var service = new SessionService();
         var session = await service.CreateAsync(options);
 

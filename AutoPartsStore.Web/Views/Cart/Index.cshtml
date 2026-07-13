@@ -12,6 +12,7 @@
 else
 {
     var total = Model.Sum(i => i.Quantity * i.Product!.Price);
+    int bonusPoints = ViewBag.BonusPoints ?? 0;
 
     <table>
         <thead>
@@ -54,6 +55,13 @@ else
 
     <p class="cart-total">Zwischensumme: @total.ToString("N2") € <span class="product-meta">zzgl. Versandkosten je nach gewählter Versandart</span></p>
 
+    @if (User.Identity!.IsAuthenticated)
+    {
+        <p class="product-meta">
+            Deine Bonuspunkte: <strong>@bonusPoints</strong> (100 Punkte = 1 € Rabatt)
+        </p>
+    }
+
     <div class="cart-actions">
         <form asp-action="Checkout" method="post" class="checkout-form">
             <div class="delivery-options">
@@ -74,6 +82,15 @@ else
                     </label>
                 }
             </div>
+
+            @if (User.Identity!.IsAuthenticated && bonusPoints > 0)
+            {
+                <div class="filter-field">
+                    <label for="pointsToRedeem">Bonuspunkte einlösen (max. @bonusPoints)</label>
+                    <input type="number" id="pointsToRedeem" name="pointsToRedeem" value="0" min="0" max="@bonusPoints" step="1" class="form-control" />
+                </div>
+            }
+
             <button type="submit" class="btn">Jetzt bezahlen</button>
         </form>
         <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">Weiter einkaufen</a>

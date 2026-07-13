@@ -1,0 +1,38 @@
+@model IReadOnlyList<AutoPartsStore.Data.Identity.ApplicationUser>
+@{
+    ViewData["Title"] = "Kunden verwalten";
+}
+<h1>Kunden verwalten</h1>
+
+@if (!Model.Any())
+{
+    <p>Es sind noch keine Kunden registriert.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>E-Mail</th>
+                <th>Bonuspunkte</th>
+                <th>Punkte anpassen</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@customer.Email</td>
+                <td>@customer.BonusPoints</td>
+                <td>
+                    <form asp-action="AdjustPoints" method="post" class="inline-form">
+                        <input type="hidden" name="userId" value="@customer.Id" />
+                        <input type="number" name="amount" value="0" step="1" class="qty-input" title="Positiv = gutschreiben, negativ = abziehen" />
+                        <button type="submit" class="btn btn-secondary">Anwenden</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

@@ -23,5 +23,12 @@ public class Order : BaseEntity
     public string? PaymentProvider { get; set; }
     public string? PaymentSessionId { get; set; }
 
+    // Бонусная программа: сколько баллов списано на скидку в этом заказе
+    // (и на какую сумму), и сколько баллов начислено после оплаты.
+    // TotalAmount уже учитывает PointsDiscount (уменьшен на эту сумму).
+    public int PointsRedeemed { get; set; }
+    public decimal PointsDiscount { get; set; }
+    public int PointsEarned { get; set; }
+
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 }

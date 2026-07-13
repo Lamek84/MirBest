@@ -12,6 +12,13 @@
         ? await CartItemRepository.GetItemCountAsync(cartOwnerId)
         : 0;
 
+    var headerBonusPoints = 0;
+    if (SignInManager.IsSignedIn(User))
+    {
+        var currentUser = await UserManager.GetUserAsync(User);
+        headerBonusPoints = currentUser?.BonusPoints ?? 0;
+    }
+
     // Баннер про cookies показываем, пока пользователь его не подтвердил
     // (см. cookie "CookieConsent", выставляется в JS внизу страницы).
     var cookieConsentGiven = Context.Request.Cookies.ContainsKey("CookieConsent");
@@ -60,6 +67,7 @@
                         <span class="icon-label">Meine Bestellungen</span>
                     </a>
                     <span>Hallo, @User.Identity!.Name</span>
+                    <span title="Bonuspunkte">Bonuspunkte: @headerBonusPoints</span>
                     <a asp-controller="Account" asp-action="ChangePassword" class="nav-icon-link" title="Passwort ändern">
                         <span class="icon-label">Passwort ändern</span>
                     </a>
