@@ -40,7 +40,12 @@
                     </button>
                 </form>
             </div>
-            <div class="nav-right">
+            <button type="button" class="burger-btn" id="burgerBtn" aria-label="Menü öffnen" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-right" id="navRight">
                 <a asp-controller="Cart" asp-action="Index" class="nav-icon-link" title="Warenkorb">
                     <partial name="_Icon" model="@("cart")" />
                     @if (cartCount > 0)
@@ -91,7 +96,7 @@
     <footer>
         <div class="container footer-simple">
             <div class="footer-col">
-                <h3>MIRBEST GmbH &amp; Co. KG</h3>
+                <h3>MIRBEST</h3>
                 <p>Wir schaffen Lösungen für Ihren Erfolg</p>
             </div>
             <div class="footer-social">
@@ -105,7 +110,7 @@
         </div>
         <div class="footer-bottom">
             <div class="container footer-bottom-inner">
-                <span>&copy; 2026 MIRBEST GmbH &amp; Co. KG. Alle Rechte vorbehalten.</span>
+                <span>&copy; 2026 MIRBEST Alle Rechte vorbehalten.</span>
                 <span class="footer-legal-links">
                     <a asp-controller="Contact" asp-action="Index">Kontakt</a>
                     <a asp-controller="Legal" asp-action="Impressum">Impressum</a>
@@ -128,6 +133,16 @@
     }
 
     <script>
+        var burgerBtn = document.getElementById('burgerBtn');
+        var navRight = document.getElementById('navRight');
+        if (burgerBtn && navRight) {
+            burgerBtn.addEventListener('click', function () {
+                var isOpen = navRight.classList.toggle('open');
+                burgerBtn.classList.toggle('open', isOpen);
+                burgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        }
+
         var cookieBannerAccept = document.getElementById('cookie-banner-accept');
         if (cookieBannerAccept) {
             cookieBannerAccept.addEventListener('click', function () {

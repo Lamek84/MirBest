@@ -108,11 +108,75 @@ header a {
     font-weight: 400;
 }
 
-/* На узких экранах подписи прячем — остаются только иконки. */
+.burger-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.burger-btn span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.burger-btn.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.burger-btn.open span:nth-child(2) {
+    opacity: 0;
+}
+
+.burger-btn.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* На узких экранах: лого уменьшается, правое меню прячется в бургер,
+   чтобы шапка не "плыла" и не переносилась вперемешку. */
 @media (max-width: 700px) {
-    .nav-icon-link .icon-label,
-    .icon-btn .icon-label {
+    .site-logo {
+        height: 40px;
+    }
+
+    .burger-btn {
+        display: flex;
+    }
+
+    .nav-search {
+        order: 3;
+        flex-basis: 100%;
+        margin: 10px 0 0 0;
+    }
+
+    .nav-right {
         display: none;
+        order: 4;
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-right.open {
+        display: flex;
+    }
+
+    .nav-right .nav-icon-link .icon-label,
+    .nav-right .icon-btn .icon-label {
+        display: inline;
     }
 
     .nav-icon-link {
@@ -484,6 +548,12 @@ a.service-card:hover {
     transform: translateY(-2px);
 }
 
+@media (max-width: 700px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .catalog-section {
     margin-top: 48px;
 }
@@ -595,6 +665,47 @@ a.service-card:hover {
 .filter-actions {
     display: flex;
     gap: 8px;
+}
+
+.filter-price-range {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.filter-price-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-price-item .form-control {
+    max-width: 100px;
+}
+
+@media (max-width: 700px) {
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-field .form-control {
+        max-width: none;
+        width: 100%;
+    }
+
+    .filter-price-range {
+        width: 100%;
+    }
+
+    .filter-price-item {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .filter-price-item .form-control {
+        max-width: none;
+        width: 100%;
+    }
 }
 
 .cart-actions {
