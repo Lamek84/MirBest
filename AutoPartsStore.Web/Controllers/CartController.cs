@@ -127,7 +127,14 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Checkout(string deliveryMethod, int pointsToRedeem = 0)
+    public async Task<IActionResult> Checkout(
+        string deliveryMethod,
+        int pointsToRedeem = 0,
+        string? shippingName = null,
+        string? shippingStreet = null,
+        string? shippingPostalCode = null,
+        string? shippingCity = null,
+        string? shippingPhone = null)
     {
         // Заказывать может только вошедший пользователь — гостя отправляем
         // на вход/регистрацию и возвращаем обратно в корзину (не на сам
@@ -142,6 +149,19 @@ public class CartController : Controller
         if (delivery is null)
         {
             TempData["CartMessage"] = "Bitte wähle eine gültige Versandart aus.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Bei Versand (nicht Selbstabholung) brauchen wir eine Lieferadresse, sonst
+        // wissen wir nach der Zahlung nicht, wohin das Paket geschickt werden soll.
+        var needsShippingAddress = delivery.Code != DeliveryOptions.Pickup.Code;
+        if (needsShippingAddress && (
+            string.IsNullOrWhiteSpace(shippingName) ||
+            string.IsNullOrWhiteSpace(shippingStreet) ||
+            string.IsNullOrWhiteSpace(shippingPostalCode) ||
+            string.IsNullOrWhiteSpace(shippingCity)))
+        {
+            TempData["CartMessage"] = "Bitte fülle die Lieferadresse vollständig aus (Name, Straße, PLZ, Ort).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -199,7 +219,12 @@ public class CartController : Controller
             DeliveryCost = delivery.Price,
             PointsRedeemed = pointsUsed,
             PointsDiscount = pointsDiscount,
-            TotalAmount = subtotal + delivery.Price - pointsDiscount
+            TotalAmount = subtotal + delivery.Price - pointsDiscount,
+            ShippingName = needsShippingAddress ? shippingName!.Trim() : null,
+            ShippingStreet = needsShippingAddress ? shippingStreet!.Trim() : null,
+            ShippingPostalCode = needsShippingAddress ? shippingPostalCode!.Trim() : null,
+            ShippingCity = needsShippingAddress ? shippingCity!.Trim() : null,
+            ShippingPhone = needsShippingAddress && !string.IsNullOrWhiteSpace(shippingPhone) ? shippingPhone.Trim() : null
         };
 
         foreach (var item in items)

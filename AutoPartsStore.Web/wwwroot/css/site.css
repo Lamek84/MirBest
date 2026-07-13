@@ -738,6 +738,30 @@ a.service-card:hover {
     gap: 8px;
 }
 
+.shipping-address-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.shipping-address-fields .filter-field {
+    width: 100%;
+}
+
+.shipping-address-fields .filter-field .form-control {
+    max-width: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.shipping-address-fields .filter-price-item {
+    flex: 1;
+    min-width: 0;
+}
+
 .delivery-option {
     display: flex;
     align-items: center;

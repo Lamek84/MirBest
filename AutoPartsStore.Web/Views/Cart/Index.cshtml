@@ -71,16 +71,42 @@ else
                     <label class="delivery-option">
                         @if (option.Code == DeliveryOptions.Pickup.Code)
                         {
-                            <input type="radio" name="deliveryMethod" value="@option.Code" checked />
+                            <input type="radio" name="deliveryMethod" value="@option.Code" class="delivery-radio" data-pickup="true" checked />
                         }
                         else
                         {
-                            <input type="radio" name="deliveryMethod" value="@option.Code" />
+                            <input type="radio" name="deliveryMethod" value="@option.Code" class="delivery-radio" data-pickup="false" />
                         }
                         <span>@option.DisplayName</span>
                         <span class="delivery-price">@(option.Price == 0 ? "kostenlos" : option.Price.ToString("N2") + " €")</span>
                     </label>
                 }
+            </div>
+
+            <div class="shipping-address-fields" id="shippingAddressFields" style="display:none;">
+                <p class="delivery-title">Lieferadresse</p>
+                <div class="filter-field">
+                    <label for="shippingName">Name des Empfängers</label>
+                    <input type="text" id="shippingName" name="shippingName" class="form-control" />
+                </div>
+                <div class="filter-field">
+                    <label for="shippingStreet">Straße und Hausnummer</label>
+                    <input type="text" id="shippingStreet" name="shippingStreet" class="form-control" />
+                </div>
+                <div class="filter-field filter-price-range">
+                    <div class="filter-price-item">
+                        <label for="shippingPostalCode">PLZ</label>
+                        <input type="text" id="shippingPostalCode" name="shippingPostalCode" class="form-control" />
+                    </div>
+                    <div class="filter-price-item">
+                        <label for="shippingCity">Ort</label>
+                        <input type="text" id="shippingCity" name="shippingCity" class="form-control" />
+                    </div>
+                </div>
+                <div class="filter-field">
+                    <label for="shippingPhone">Telefon (optional, für Rückfragen des Versanddienstleisters)</label>
+                    <input type="tel" id="shippingPhone" name="shippingPhone" class="form-control" />
+                </div>
             </div>
 
             @if (User.Identity!.IsAuthenticated && bonusPoints > 0)
@@ -95,4 +121,8 @@ else
         </form>
         <a asp-controller="Products" asp-action="Index" class="btn btn-secondary">Weiter einkaufen</a>
     </div>
+}
+
+@section Scripts {
+    <script src="~/js/cart-checkout.js"></script>
 }

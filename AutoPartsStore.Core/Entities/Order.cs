@@ -30,5 +30,15 @@ public class Order : BaseEntity
     public decimal PointsDiscount { get; set; }
     public int PointsEarned { get; set; }
 
+    // Lieferadresse — nur bei Versand per DHL/Hermes/DPD gesetzt (siehe CartController.Checkout).
+    // Bei Selbstabholung bleiben diese Felder leer, da der Kunde die Ware selbst abholt.
+    // Snapshot zum Bestellzeitpunkt, wie DeliveryLabel — spätere Adressänderungen im
+    // Kundenkonto wirken sich nicht rückwirkend auf bereits aufgegebene Bestellungen aus.
+    public string? ShippingName { get; set; }
+    public string? ShippingStreet { get; set; }
+    public string? ShippingPostalCode { get; set; }
+    public string? ShippingCity { get; set; }
+    public string? ShippingPhone { get; set; }
+
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 }

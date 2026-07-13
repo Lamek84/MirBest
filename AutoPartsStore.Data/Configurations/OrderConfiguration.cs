@@ -20,6 +20,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.DeliveryCost).HasColumnType("decimal(18,2)");
         builder.Property(o => o.PointsDiscount).HasColumnType("decimal(18,2)");
 
+        builder.Property(o => o.ShippingName).HasMaxLength(200);
+        builder.Property(o => o.ShippingStreet).HasMaxLength(200);
+        builder.Property(o => o.ShippingPostalCode).HasMaxLength(20);
+        builder.Property(o => o.ShippingCity).HasMaxLength(100);
+        builder.Property(o => o.ShippingPhone).HasMaxLength(50);
+
         builder.HasIndex(o => o.UserId);
         builder.HasIndex(o => o.PaymentSessionId);
 

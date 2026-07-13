@@ -45,6 +45,20 @@
     <p class="product-meta">Versandart: @Model.DeliveryLabel — @(Model.DeliveryCost == 0 ? "kostenlos" : Model.DeliveryCost.ToString("N2") + " €")</p>
 }
 
+@if (!string.IsNullOrEmpty(Model.ShippingStreet))
+{
+    <p class="product-meta">
+        Lieferadresse: @Model.ShippingName<br />
+        @Model.ShippingStreet<br />
+        @Model.ShippingPostalCode @Model.ShippingCity
+        @if (!string.IsNullOrEmpty(Model.ShippingPhone))
+        {
+            <br />
+            <text>Tel.: @Model.ShippingPhone</text>
+        }
+    </p>
+}
+
 @if (Model.PointsRedeemed > 0)
 {
     <p class="product-meta">Eingelöste Bonuspunkte: @Model.PointsRedeemed (−@Model.PointsDiscount.ToString("N2") €)</p>

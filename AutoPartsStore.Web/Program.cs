@@ -78,7 +78,10 @@ try
             options.User.RequireUniqueEmail = true;
 
             // Вход разрешён только после подтверждения email (см. AccountController.Register/ConfirmEmail).
-            options.SignIn.RequireConfirmedAccount = true;
+            // Lokal (Development) ist kein SMTP konfiguriert, daher würde die Bestätigungsmail
+            // nie ankommen — dort überspringen wir die Pflicht, damit man sich sofort nach der
+            // Registrierung einloggen kann. In Produktion bleibt sie zwingend aktiv.
+            options.SignIn.RequireConfirmedAccount = !builder.Environment.IsDevelopment();
 
             // Блокировка после серии неудачных попыток входа — защита от брутфорса.
             options.Lockout.MaxFailedAccessAttempts = 5;
