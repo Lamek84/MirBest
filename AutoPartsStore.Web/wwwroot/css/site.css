@@ -360,6 +360,7 @@ footer {
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
+    margin: 4px 8px 4px 0;
 }
 
 .btn:hover {
