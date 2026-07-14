@@ -9,16 +9,22 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IPartnerRepository _partnerRepository;
 
-    public HomeController(ILogger<HomeController> logger, ICategoryRepository categoryRepository)
+    public HomeController(ILogger<HomeController> logger, ICategoryRepository categoryRepository, IPartnerRepository partnerRepository)
     {
         _logger = logger;
         _categoryRepository = categoryRepository;
+        _partnerRepository = partnerRepository;
     }
 
     public async Task<IActionResult> Index()
     {
         var categories = await _categoryRepository.GetAllAsync();
+
+        var partners = await _partnerRepository.GetAllAsync();
+        ViewBag.Partners = partners.OrderBy(p => p.DisplayOrder).ThenBy(p => p.Name).ToList();
+
         return View(categories);
     }
 

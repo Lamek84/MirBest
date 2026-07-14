@@ -22,6 +22,7 @@ public static class DbInitializer
         await SeedCatalogAsync(context);
         await SeedVehicleMakesAsync(context);
         await SeedLegalPagesAsync(context);
+        await SeedPartnersAsync(context);
     }
 
     // Rechtstexte (Impressum, Datenschutz, AGB) UND die Kontaktinformationen-Box
@@ -51,6 +52,36 @@ public static class DbInitializer
                     Title = title,
                     Content = content,
                     UpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    // Логотипы в "Unsere Partner" (Home/Index). Nur einmal einfügen, falls der
+    // Name noch nicht existiert — der Admin kann über PartnersController weitere
+    // Partner hinzufügen/bearbeiten/löschen, ohne dass der Seed das überschreibt.
+    private static async Task SeedPartnersAsync(AppDbContext context)
+    {
+        var desiredPartners = new (string Name, string ImageUrl, int DisplayOrder)[]
+        {
+            ("K&K", "/images/partners/kk.png", 1),
+            ("LKQ", "/images/partners/lkq.png", 2),
+            ("Castrol", "/images/partners/castrol.png", 3),
+            ("Sinus Ambulance", "/images/partners/sinus-ambulance.png", 4),
+        };
+
+        foreach (var (name, imageUrl, displayOrder) in desiredPartners)
+        {
+            var exists = await context.Partners.AnyAsync(p => p.Name == name);
+            if (!exists)
+            {
+                context.Partners.Add(new Partner
+                {
+                    Name = name,
+                    ImageUrl = imageUrl,
+                    DisplayOrder = displayOrder
                 });
             }
         }

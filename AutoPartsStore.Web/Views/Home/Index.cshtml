@@ -36,6 +36,7 @@
             <a asp-controller="VehicleModels" asp-action="Index" class="btn btn-secondary">Fahrzeugmodelle verwalten</a>
             <a asp-controller="Customers" asp-action="Index" class="btn btn-secondary">Kunden verwalten</a>
             <a asp-controller="Legal" asp-action="Index" class="btn btn-secondary">Inhalte verwalten</a>
+            <a asp-controller="Partners" asp-action="Index" class="btn btn-secondary">Partner verwalten</a>
         </p>
     }
 
@@ -63,14 +64,29 @@
     </div>
 </section>
 
-<section class="partners-section">
-    <h2>Unsere Partner</h2>
-    <p class="partners-note">Hier erscheinen bald die Logos unserer Partner.</p>
-    <div class="partners-row">
-        <img src="~/images/partners/partner-1.svg" alt="Partner 1" />
-        <img src="~/images/partners/partner-2.svg" alt="Partner 2" />
-        <img src="~/images/partners/partner-3.svg" alt="Partner 3" />
-        <img src="~/images/partners/partner-4.svg" alt="Partner 4" />
-        <img src="~/images/partners/partner-5.svg" alt="Partner 5" />
-    </div>
-</section>
+@{
+    var partners = ViewBag.Partners as IReadOnlyList<Partner> ?? new List<Partner>();
+}
+@if (partners.Any())
+{
+    <section class="partners-section">
+        <h2>Unsere Partner</h2>
+        <div class="partners-row">
+            @foreach (var partner in partners)
+            {
+                if (!string.IsNullOrEmpty(partner.LinkUrl))
+                {
+                    <a class="partner-card" href="@partner.LinkUrl" target="_blank" rel="noopener">
+                        <img src="@partner.ImageUrl" alt="@partner.Name" />
+                    </a>
+                }
+                else
+                {
+                    <div class="partner-card">
+                        <img src="@partner.ImageUrl" alt="@partner.Name" />
+                    </div>
+                }
+            }
+        </div>
+    </section>
+}

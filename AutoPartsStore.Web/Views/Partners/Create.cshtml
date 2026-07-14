@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Partner hinzufügen";
+}
+<h1>Partner hinzufügen</h1>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="linkUrl">Link zur Partner-Website (optional)</label>
+        <input type="url" id="linkUrl" name="linkUrl" class="form-control" placeholder="https://beispiel.de" />
+    </div>
+
+    <div class="form-group">
+        <label for="displayOrder">Reihenfolge</label>
+        <input type="number" id="displayOrder" name="displayOrder" class="form-control" value="0" />
+    </div>
+
+    <div class="form-group">
+        <label for="logo">Logo</label>
+        <input type="file" id="logo" name="logo" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" required />
+        <small>PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
+    </div>
+
+    <button type="submit" class="btn">Speichern</button>
+    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+</form>

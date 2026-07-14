@@ -20,6 +20,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<VehicleModel> VehicleModels => Set<VehicleModel>();
     public DbSet<ProductVehicleFitment> ProductVehicleFitments => Set<ProductVehicleFitment>();
     public DbSet<LegalPage> LegalPages => Set<LegalPage>();
+    public DbSet<Partner> Partners => Set<Partner>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

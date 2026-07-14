@@ -1,0 +1,38 @@
+@model Partner
+@{
+    ViewData["Title"] = "Partner bearbeiten";
+}
+<h1>Partner bearbeiten</h1>
+
+<div class="form-group">
+    <label>Aktuelles Logo</label><br />
+    <img src="@Model.ImageUrl" alt="@Model.Name" class="cart-thumb" />
+</div>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" class="form-control" value="@Model.Name" required />
+    </div>
+
+    <div class="form-group">
+        <label for="linkUrl">Link zur Partner-Website (optional)</label>
+        <input type="url" id="linkUrl" name="linkUrl" class="form-control" value="@Model.LinkUrl" placeholder="https://beispiel.de" />
+    </div>
+
+    <div class="form-group">
+        <label for="displayOrder">Reihenfolge</label>
+        <input type="number" id="displayOrder" name="displayOrder" class="form-control" value="@Model.DisplayOrder" />
+    </div>
+
+    <div class="form-group">
+        <label for="logo">Neues Logo (optional)</label>
+        <input type="file" id="logo" name="logo" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
+        <small>Nur ausfüllen, um das bisherige Logo zu ersetzen. PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
+    </div>
+
+    <button type="submit" class="btn">Speichern</button>
+    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+</form>

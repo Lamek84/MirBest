@@ -1,0 +1,45 @@
+@model IReadOnlyList<Partner>
+@{
+    ViewData["Title"] = "Partner verwalten";
+}
+<h1>Partner verwalten</h1>
+
+<p><a asp-action="Create" class="btn">Neues Partner-Logo hinzufügen</a></p>
+
+@if (!Model.Any())
+{
+    <p>Noch keine Partner vorhanden.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Link</th>
+                <th>Reihenfolge</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var partner in Model)
+        {
+            <tr>
+                <td><img src="@partner.ImageUrl" alt="@partner.Name" class="cart-thumb" /></td>
+                <td>@partner.Name</td>
+                <td>@(string.IsNullOrEmpty(partner.LinkUrl) ? "—" : partner.LinkUrl)</td>
+                <td>@partner.DisplayOrder</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@partner.Id" class="icon-link" title="Bearbeiten">
+                        <partial name="_Icon" model="@("edit")" />
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@partner.Id" class="icon-link" title="Löschen">
+                        <partial name="_Icon" model="@("trash")" />
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
