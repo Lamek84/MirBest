@@ -1,0 +1,9 @@
+@model AutoPartsStore.Core.Entities.LegalPage
+@{
+    ViewData["Title"] = Model.Title;
+}
+<h1>@Model.Title</h1>
+
+@* Inhalt kommt aus der DB und wird nur von Admins gepflegt (LegalController.Edit),
+   daher ist Html.Raw hier unkritisch (kein ungefilterter Nutzer-Content). *@
+@Html.Raw(Model.Content)

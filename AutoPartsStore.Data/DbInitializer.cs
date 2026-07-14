@@ -21,6 +21,41 @@ public static class DbInitializer
         await SeedIdentityAsync(userManager, roleManager, configuration);
         await SeedCatalogAsync(context);
         await SeedVehicleMakesAsync(context);
+        await SeedLegalPagesAsync(context);
+    }
+
+    // Rechtstexte (Impressum, Datenschutz, AGB) UND die Kontaktinformationen-Box
+    // (Contact/Index) leben jetzt in der DB statt hartcodiert in .cshtml-Views
+    // (siehe LegalController). Nur einmal einfügen, falls der Key noch nicht
+    // existiert — spätere Bearbeitungen durch den Admin (LegalController.Edit)
+    // werden bei jedem Neustart NICHT überschrieben.
+    private static async Task SeedLegalPagesAsync(AppDbContext context)
+    {
+        var desiredPages = new (string Key, string Title, string Content)[]
+        {
+            ("impressum", "Impressum", ImpressumContent),
+            ("datenschutz", "Datenschutzerklärung", DatenschutzContent),
+            ("agb", "Allgemeine Geschäftsbedingungen (AGB)", AgbContent),
+            ("widerrufsbelehrung", "Widerrufsbelehrung", WiderrufsbelehrungContent),
+            ("kontakt-info", "Kontaktinformationen", KontaktInfoContent),
+        };
+
+        foreach (var (key, title, content) in desiredPages)
+        {
+            var exists = await context.LegalPages.AnyAsync(p => p.Key == key);
+            if (!exists)
+            {
+                context.LegalPages.Add(new LegalPage
+                {
+                    Key = key,
+                    Title = title,
+                    Content = content,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        await context.SaveChangesAsync();
     }
 
     // Список известных марок для справочника "подобрать деталь под мою машину".
@@ -155,4 +190,30 @@ public static class DbInitializer
             }
         }
     }
+
+    // Platzhalter-Texte für den ersten Start — der echte Inhalt wird über die
+    // Admin-Oberfläche (LegalController.Edit) bzw. direkt in der DB gepflegt.
+    // Wird nur eingefügt, wenn der Key noch nicht existiert (siehe SeedLegalPagesAsync),
+    // eine spätere Bearbeitung hier wird also nicht überschrieben.
+    private const string ImpressumContent = "<p>Platzhaltertext – bitte über die Admin-Oberfläche durch den echten Impressum-Inhalt ersetzen.</p>";
+
+    private const string DatenschutzContent = "<p>Platzhaltertext – bitte über die Admin-Oberfläche durch die echte Datenschutzerklärung ersetzen.</p>";
+
+    private const string AgbContent = "<p>Platzhaltertext – bitte über die Admin-Oberfläche durch die echten AGB ersetzen.</p>";
+
+    private const string WiderrufsbelehrungContent = "<p>Platzhaltertext – bitte über die Admin-Oberfläche durch die echte Widerrufsbelehrung (Muster-Widerrufsbelehrung + Muster-Widerrufsformular) ersetzen.</p>";
+
+    // Das ist der bisher hartcodierte Inhalt der "Kontaktinformationen"-Box auf der
+    // Kontakt-Seite (Telefon/E-Mail/Adresse/Social-Links) — im Gegensatz zu den
+    // Rechtstexten oben schon der echte, aktuelle Inhalt (kein Platzhalter nötig).
+    private const string KontaktInfoContent = """
+        <p><strong>Telefon:</strong> <a href="tel:+4915566446608">+49 15566446608</a></p>
+        <p><strong>E-Mail:</strong> <a href="mailto:info@mirbest.de">info@mirbest.de</a></p>
+        <p><strong>Adresse:</strong> Hinterm Sielhof 4, 28277 Bremen</p>
+        <p>
+            <a href="https://www.facebook.com/mirplusde" target="_blank" rel="noopener">Facebook</a>
+            ·
+            <a href="https://www.instagram.com/mirbest.de/" target="_blank" rel="noopener">Instagram</a>
+        </p>
+        """;
 }

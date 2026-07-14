@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IVehicleMakeRepository, VehicleMakeRepository>();
         services.AddScoped<IVehicleModelRepository, VehicleModelRepository>();
         services.AddScoped<IProductVehicleFitmentRepository, ProductVehicleFitmentRepository>();
+        services.AddScoped<ILegalPageRepository, LegalPageRepository>();
 
         // SMTP-настройки берутся из секции "Smtp" в appsettings.json.
         // Пока Host пуст, письма не отправляются (см. SmtpEmailSender),

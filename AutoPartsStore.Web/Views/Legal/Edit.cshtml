@@ -1,0 +1,27 @@
+@model AutoPartsStore.Core.Entities.LegalPage
+@{
+    ViewData["Title"] = "Rechtstext bearbeiten: " + Model.Title;
+}
+<h1>Rechtstext bearbeiten: @Model.Title</h1>
+
+<p class="product-meta">Zuletzt geändert: @Model.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
+
+@if (TempData["CartMessage"] != null)
+{
+    <p class="alert-success">@TempData["CartMessage"]</p>
+}
+
+<form asp-action="Edit" asp-route-id="@Model.Key" method="post" class="legal-edit-form">
+    <div class="filter-field">
+        <label for="title">Titel (Überschrift auf der Seite)</label>
+        <input type="text" id="title" name="title" value="@Model.Title" class="form-control" required />
+    </div>
+    <div class="filter-field">
+        <label for="content">Inhalt (HTML)</label>
+        <textarea id="content" name="content" class="form-control legal-editor" rows="25" required>@Model.Content</textarea>
+    </div>
+    <div class="filter-actions">
+        <button type="submit" class="btn">Speichern</button>
+        <a asp-action="Index" class="btn btn-secondary">Zurück zur Übersicht</a>
+    </div>
+</form>

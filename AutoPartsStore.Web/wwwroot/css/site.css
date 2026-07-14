@@ -519,8 +519,9 @@ dl dt {
 }
 
 .service-card img {
-    width: 72px;
-    height: 72px;
+    width: 140px;
+    height: 92px;
+    object-fit: contain;
     margin-bottom: 14px;
 }
 
@@ -816,6 +817,31 @@ a.service-card:hover {
     border: 1px solid #eee;
     border-radius: 12px;
     padding: 20px 24px;
+}
+
+.legal-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    max-width: 900px;
+}
+
+.legal-edit-form .form-control {
+    max-width: none;
+    width: 100%;
+}
+
+.legal-editor {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 480px;
+    resize: vertical;
 }
 
 .contact-info h2,

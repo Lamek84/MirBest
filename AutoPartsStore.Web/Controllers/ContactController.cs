@@ -12,22 +12,26 @@ public class ContactController : Controller
     private const string RecipientEmail = "info@mirbest.de";
 
     private readonly IContactMessageRepository _contactMessageRepository;
+    private readonly ILegalPageRepository _legalPageRepository;
     private readonly IEmailSender _emailSender;
     private readonly ILogger<ContactController> _logger;
 
     public ContactController(
         IContactMessageRepository contactMessageRepository,
+        ILegalPageRepository legalPageRepository,
         IEmailSender emailSender,
         ILogger<ContactController> logger)
     {
         _contactMessageRepository = contactMessageRepository;
+        _legalPageRepository = legalPageRepository;
         _emailSender = emailSender;
         _logger = logger;
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        await LoadContactInfoAsync();
         return View(new ContactViewModel());
     }
 
@@ -38,6 +42,7 @@ public class ContactController : Controller
     {
         if (!ModelState.IsValid)
         {
+            await LoadContactInfoAsync();
             return View(model);
         }
 
@@ -72,5 +77,14 @@ public class ContactController : Controller
 
         TempData["ContactSuccess"] = true;
         return RedirectToAction(nameof(Index));
+    }
+
+    // Kontaktinformationen-Box (Telefon/E-Mail/Adresse/Social-Links) kommt jetzt
+    // aus der DB (LegalPage, Key "kontakt-info") statt hartcodiert im View —
+    // Admins können sie über /Legal/Edit/kontakt-info anpassen.
+    private async Task LoadContactInfoAsync()
+    {
+        var page = await _legalPageRepository.GetByKeyAsync("kontakt-info");
+        ViewBag.ContactInfoContent = page?.Content;
     }
 }

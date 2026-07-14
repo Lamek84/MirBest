@@ -1,0 +1,36 @@
+@model IReadOnlyList<AutoPartsStore.Core.Entities.LegalPage>
+@{
+    ViewData["Title"] = "Inhalte verwalten";
+}
+<h1>Inhalte verwalten</h1>
+<p class="product-meta">Rechtstexte (Impressum, Datenschutz, AGB) sowie Textbausteine wie die Kontaktinformationen-Box.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Titel</th>
+            <th>Zuletzt geändert</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var legalPage in Model)
+    {
+        <tr>
+            <td>@legalPage.Title</td>
+            <td>@legalPage.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@legalPage.Key" class="btn btn-secondary">Bearbeiten</a>
+                @if (legalPage.Key == "kontakt-info")
+                {
+                    <a asp-controller="Contact" asp-action="Index" class="icon-link" title="Ansehen" target="_blank">Ansehen</a>
+                }
+                else
+                {
+                    <a asp-action="@legalPage.Key" class="icon-link" title="Ansehen" target="_blank">Ansehen</a>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

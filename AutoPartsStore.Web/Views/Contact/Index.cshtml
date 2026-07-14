@@ -7,14 +7,9 @@
 <div class="contact-grid">
     <div class="contact-info">
         <h2>Kontaktinformationen</h2>
-        <p><strong>Telefon:</strong> <a href="tel:+4915566446608">+49 15566446608</a></p>
-        <p><strong>E-Mail:</strong> <a href="mailto:info@mirbest.de">info@mirbest.de</a></p>
-        <p><strong>Adresse:</strong> Hinterm Sielhof 4, 28277 Bremen</p>
-        <p>
-            <a href="https://www.facebook.com/mirplusde" target="_blank" rel="noopener">Facebook</a>
-            ·
-            <a href="https://www.instagram.com/mirbest.de/" target="_blank" rel="noopener">Instagram</a>
-        </p>
+        @* Inhalt kommt aus der DB (LegalPage, Key "kontakt-info") — nur von Admins
+           über /Legal/Edit/kontakt-info bearbeitbar, daher ist Html.Raw hier unkritisch. *@
+        @Html.Raw(ViewBag.ContactInfoContent)
     </div>
 
     <div class="contact-form-wrapper">
