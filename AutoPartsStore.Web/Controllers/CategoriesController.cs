@@ -9,11 +9,16 @@ namespace AutoPartsStore.Web.Controllers;
 [Authorize(Roles = "Admin")]
 public class CategoriesController : Controller
 {
-    private readonly ICategoryRepository _categoryRepository;
+    private static readonly string[] AllowedExtensions = { ".png", ".jpg", ".jpeg", ".svg", ".webp" };
+    private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-    public CategoriesController(ICategoryRepository categoryRepository)
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly IWebHostEnvironment _env;
+
+    public CategoriesController(ICategoryRepository categoryRepository, IWebHostEnvironment env)
     {
         _categoryRepository = categoryRepository;
+        _env = env;
     }
 
     public async Task<IActionResult> Index()
@@ -29,11 +34,21 @@ public class CategoriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Category category)
+    public async Task<IActionResult> Create(Category category, IFormFile? image)
     {
+        if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
+        {
+            ModelState.AddModelError(string.Empty, validationError!);
+        }
+
         if (!ModelState.IsValid)
         {
             return View(category);
+        }
+
+        if (image is not null && image.Length > 0)
+        {
+            category.ImageUrl = await SaveImageAsync(image);
         }
 
         await _categoryRepository.AddAsync(category);
@@ -54,16 +69,29 @@ public class CategoriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Category category)
+    public async Task<IActionResult> Edit(int id, Category category, IFormFile? image)
     {
         if (id != category.Id)
         {
             return BadRequest();
         }
 
+        if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
+        {
+            ModelState.AddModelError(string.Empty, validationError!);
+        }
+
         if (!ModelState.IsValid)
         {
             return View(category);
+        }
+
+        // Bisheriges Bild bleibt erhalten, falls keine neue Datei hochgeladen wurde —
+        // der aktuelle Pfad kommt über das hidden ImageUrl-Feld im Formular mit
+        // (siehe Edit.cshtml), wir müssen ihn hier nicht extra nachladen.
+        if (image is not null && image.Length > 0)
+        {
+            category.ImageUrl = await SaveImageAsync(image);
         }
 
         _categoryRepository.Update(category);
@@ -104,5 +132,38 @@ public class CategoriesController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    private static bool IsValidImage(IFormFile image, out string? error)
+    {
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            error = "Nicht unterstütztes Bildformat. Erlaubt: PNG, JPG, SVG, WEBP.";
+            return false;
+        }
+
+        if (image.Length > MaxFileSizeBytes)
+        {
+            error = "Die Datei ist zu groß (maximal 5 MB).";
+            return false;
+        }
+
+        error = null;
+        return true;
+    }
+
+    private async Task<string> SaveImageAsync(IFormFile image)
+    {
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        var fileName = $"{Guid.NewGuid():N}{extension}";
+        var folder = Path.Combine(_env.WebRootPath, "images", "categories");
+        Directory.CreateDirectory(folder);
+        var filePath = Path.Combine(folder, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await image.CopyToAsync(stream);
+
+        return $"/images/categories/{fileName}";
     }
 }

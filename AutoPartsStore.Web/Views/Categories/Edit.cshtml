@@ -4,8 +4,17 @@
 }
 <h1>Kategorie bearbeiten</h1>
 
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+@if (!string.IsNullOrEmpty(Model.ImageUrl))
+{
+    <div class="form-group">
+        <label>Aktuelles Bild</label><br />
+        <img src="@Model.ImageUrl" alt="@Model.Name" class="cart-thumb" />
+    </div>
+}
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
     <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ImageUrl" />
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="form-group">
@@ -20,8 +29,9 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="ImageUrl">Bild-URL</label>
-        <input asp-for="ImageUrl" class="form-control" placeholder="/images/categories/beispiel.svg" />
+        <label for="image">Neues Bild (optional)</label>
+        <input type="file" id="image" name="image" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
+        <small>Nur ausfüllen, um das bisherige Bild zu ersetzen. PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
     </div>
 
     <button type="submit" class="btn">Speichern</button>

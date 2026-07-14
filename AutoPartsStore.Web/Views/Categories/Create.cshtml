@@ -4,7 +4,7 @@
 }
 <h1>Kategorie hinzufügen</h1>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="form-group">
@@ -19,8 +19,9 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="ImageUrl">Bild-URL</label>
-        <input asp-for="ImageUrl" class="form-control" placeholder="/images/categories/beispiel.svg" />
+        <label for="image">Bild</label>
+        <input type="file" id="image" name="image" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
+        <small>PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
     </div>
 
     <button type="submit" class="btn">Speichern</button>
