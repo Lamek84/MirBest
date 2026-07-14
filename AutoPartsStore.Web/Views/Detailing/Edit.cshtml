@@ -1,0 +1,43 @@
+@model DetailingPackage
+@{
+    ViewData["Title"] = "Detailing-Paket bearbeiten";
+}
+<h1>Detailing-Paket bearbeiten</h1>
+
+<div class="form-group">
+    <label>Aktuelles Bild</label><br />
+    <img src="@Model.ImageUrl" alt="@Model.Name" class="cart-thumb" />
+</div>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" class="form-control" value="@Model.Name" required />
+    </div>
+
+    <div class="form-group">
+        <label for="shortDescription">Kurzbeschreibung (auf der Übersichtskarte)</label>
+        <input type="text" id="shortDescription" name="shortDescription" class="form-control" value="@Model.ShortDescription" required />
+    </div>
+
+    <div class="form-group">
+        <label for="displayOrder">Reihenfolge</label>
+        <input type="number" id="displayOrder" name="displayOrder" class="form-control" value="@Model.DisplayOrder" />
+    </div>
+
+    <div class="form-group">
+        <label for="image">Neues Bild (optional)</label>
+        <input type="file" id="image" name="image" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
+        <small>Nur ausfüllen, um das bisherige Bild zu ersetzen. PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
+    </div>
+
+    <div class="form-group">
+        <label for="content">Ausführliche Beschreibung (HTML, auf der Detailseite)</label>
+        <textarea id="content" name="content" class="form-control legal-editor" rows="20">@Model.Content</textarea>
+    </div>
+
+    <button type="submit" class="btn">Speichern</button>
+    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+</form>

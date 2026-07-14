@@ -1,0 +1,50 @@
+@model IReadOnlyList<DetailingPackage>
+@{
+    ViewData["Title"] = "Detailing";
+}
+<h1>Detailing</h1>
+<p>Von der gründlichen Innenreinigung bis zur Lackversiegelung — wähle das passende Paket für dein Fahrzeug.</p>
+
+<p>
+    <a asp-controller="Appointments" asp-action="Book" asp-route-service="Detailing" class="btn">Termin vereinbaren</a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-secondary">Neues Paket hinzufügen</a>
+    }
+</p>
+
+@if (TempData["CartMessage"] != null)
+{
+    <p class="alert-success">@TempData["CartMessage"]</p>
+}
+
+@if (!Model.Any())
+{
+    <p>Aktuell sind keine Detailing-Pakete hinterlegt.</p>
+}
+else
+{
+    <div class="services-grid">
+        @foreach (var package in Model)
+        {
+            <div class="service-card-wrapper">
+                <a class="service-card detailing-package-card" asp-action="Details" asp-route-id="@package.Id">
+                    <img src="@package.ImageUrl" alt="@package.Name" />
+                    <h3>@package.Name</h3>
+                    <p>@package.ShortDescription</p>
+                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <p class="category-admin-actions">
+                        <a asp-action="Edit" asp-route-id="@package.Id" class="icon-link" title="Bearbeiten">
+                            <partial name="_Icon" model="@("edit")" />
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@package.Id" class="icon-link" title="Löschen">
+                            <partial name="_Icon" model="@("trash")" />
+                        </a>
+                    </p>
+                }
+            </div>
+        }
+    </div>
+}

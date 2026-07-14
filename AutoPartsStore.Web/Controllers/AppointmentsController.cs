@@ -29,10 +29,19 @@ public class AppointmentsController : Controller
     }
 
     [HttpGet]
-    public IActionResult Book()
+    public IActionResult Book(string? service)
     {
-        PopulateOptions();
-        return View(new AppointmentViewModel());
+        PopulateOptions(service);
+        var model = new AppointmentViewModel();
+        if (!string.IsNullOrWhiteSpace(service))
+        {
+            // Vorbelegung, z. B. per Link von einer Detailing-Paket-Seite
+            // (asp-route-service="..."). Siehe PopulateOptions — der Wert wird
+            // der Dropdown-Liste hinzugefügt, falls er dort noch nicht steht.
+            model.ServiceType = service;
+        }
+
+        return View(model);
     }
 
     [HttpPost]
@@ -47,7 +56,7 @@ public class AppointmentsController : Controller
 
         if (!ModelState.IsValid)
         {
-            PopulateOptions();
+            PopulateOptions(model.ServiceType);
             return View(model);
         }
 
@@ -127,9 +136,19 @@ public class AppointmentsController : Controller
         }
     }
 
-    private void PopulateOptions()
+    private void PopulateOptions(string? extraServiceType = null)
     {
-        ViewBag.ServiceTypes = new SelectList(AppointmentServiceTypes.All);
+        // Feste Liste + optional ein zusätzlicher Wert, der von außen übergeben
+        // wurde (z. B. Name eines Detailing-Pakets) und noch nicht enthalten ist —
+        // so bleibt die Liste dynamisch, ohne AppointmentServiceTypes anfassen zu müssen.
+        var serviceTypes = AppointmentServiceTypes.All.ToList();
+        if (!string.IsNullOrWhiteSpace(extraServiceType)
+            && !serviceTypes.Contains(extraServiceType, StringComparer.OrdinalIgnoreCase))
+        {
+            serviceTypes.Add(extraServiceType);
+        }
+
+        ViewBag.ServiceTypes = new SelectList(serviceTypes);
         ViewBag.TimeSlots = new SelectList(AppointmentTimeSlots.All);
     }
 }

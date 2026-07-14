@@ -23,6 +23,7 @@ public static class DbInitializer
         await SeedVehicleMakesAsync(context);
         await SeedLegalPagesAsync(context);
         await SeedPartnersAsync(context);
+        await SeedDetailingPackagesAsync(context);
     }
 
     // Rechtstexte (Impressum, Datenschutz, AGB) UND die Kontaktinformationen-Box
@@ -81,6 +82,64 @@ public static class DbInitializer
                 {
                     Name = name,
                     ImageUrl = imageUrl,
+                    DisplayOrder = displayOrder
+                });
+            }
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    // Startpakete für den Detailing-Bereich (siehe DetailingController). Nur
+    // einmal einfügen, falls der Name noch nicht existiert — Admin kann Bilder
+    // und Beschreibungen später über die Verwaltung anpassen, ohne dass der
+    // Seed das bei jedem Neustart überschreibt.
+    private static async Task SeedDetailingPackagesAsync(AppDbContext context)
+    {
+        const string placeholderImage = "/images/service-detailing.png";
+
+        var desiredPackages = new (string Name, string ShortDescription, string Content, int DisplayOrder)[]
+        {
+            (
+                "Innenreinigung",
+                "Gründliche Reinigung von Polstern, Teppichen und allen Innenflächen.",
+                "<p>Wir befreien den Innenraum deines Fahrzeugs von Staub, Flecken und Gerüchen: " +
+                "Polster und Teppiche werden tiefengereinigt, Kunststoff- und Lederflächen aufbereitet, " +
+                "Fußmatten und Verkleidungen gründlich gesäugt.</p>" +
+                "<p>Ideal vor dem Verkauf, nach der Urlaubsreise oder einfach für ein frisches Fahrgefühl.</p>",
+                1
+            ),
+            (
+                "Außenaufbereitung",
+                "Handwäsche, Felgenreinigung und Politur für einen makellosen Glanz.",
+                "<p>Von der schonenden Handwäsche über die Felgenreinigung bis zur Politur kleiner " +
+                "Lackkratzer — deine Karosserie erstrahlt wieder wie am ersten Tag.</p>" +
+                "<p>Enthalten sind unter anderem: Vorwäsche, Handwäsche, Felgen- und Reifenpflege, " +
+                "Trocknung und abschließende Politur.</p>",
+                2
+            ),
+            (
+                "Lackversiegelung",
+                "Langfristiger Schutz für den Lack mit hochwertiger Versiegelung.",
+                "<p>Eine professionelle Lackversiegelung schützt den Lack deines Fahrzeugs vor " +
+                "Witterungseinflüssen, UV-Strahlung und leichten Kratzern — für lang anhaltenden Glanz " +
+                "und einfachere Pflege im Alltag.</p>" +
+                "<p>Empfohlen im Anschluss an eine Außenaufbereitung für maximale Wirkung.</p>",
+                3
+            ),
+        };
+
+        foreach (var (name, shortDescription, content, displayOrder) in desiredPackages)
+        {
+            var exists = await context.DetailingPackages.AnyAsync(p => p.Name == name);
+            if (!exists)
+            {
+                context.DetailingPackages.Add(new DetailingPackage
+                {
+                    Name = name,
+                    ShortDescription = shortDescription,
+                    Content = content,
+                    ImageUrl = placeholderImage,
                     DisplayOrder = displayOrder
                 });
             }

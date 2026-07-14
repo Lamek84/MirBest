@@ -1,0 +1,19 @@
+@model DetailingPackage
+@{
+    ViewData["Title"] = Model.Name;
+}
+<h1>@Model.Name</h1>
+
+<img src="@Model.ImageUrl" alt="@Model.Name" class="detailing-detail-image" />
+
+@* Inhalt kommt aus der DB und wird nur von Admins gepflegt (DetailingController.Edit). *@
+@Html.Raw(Model.Content)
+
+<p>
+    <a asp-controller="Appointments" asp-action="Book" asp-route-service="@Model.Name" class="btn">Termin vereinbaren</a>
+    <a asp-action="Index" class="btn btn-secondary">Zurück zur Übersicht</a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary">Bearbeiten</a>
+    }
+</p>

@@ -21,6 +21,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProductVehicleFitment> ProductVehicleFitments => Set<ProductVehicleFitment>();
     public DbSet<LegalPage> LegalPages => Set<LegalPage>();
     public DbSet<Partner> Partners => Set<Partner>();
+    public DbSet<DetailingPackage> DetailingPackages => Set<DetailingPackage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
