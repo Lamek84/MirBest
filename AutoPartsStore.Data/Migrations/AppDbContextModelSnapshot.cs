@@ -489,6 +489,20 @@ namespace AutoPartsStore.Data.Migrations
                     b.ToTable("ProductVehicleFitments");
                 });
 
+            modelBuilder.Entity("AutoPartsStore.Core.Entities.SeedFlag", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("SeededAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SeedFlags");
+                });
+
             modelBuilder.Entity("AutoPartsStore.Core.Entities.VehicleMake", b =>
                 {
                     b.Property<int>("Id")

@@ -60,11 +60,18 @@ public static class DbInitializer
         await context.SaveChangesAsync();
     }
 
-    // Логотипы в "Unsere Partner" (Home/Index). Nur einmal einfügen, falls der
-    // Name noch nicht existiert — der Admin kann über PartnersController weitere
-    // Partner hinzufügen/bearbeiten/löschen, ohne dass der Seed das überschreibt.
+    // Логотипы в "Unsere Partner" (Home/Index). Läuft dank SeedFlag NUR BEIM
+    // ALLERERSTEN Mal — der Admin kann über PartnersController Partner
+    // hinzufügen/bearbeiten/löschen, und gelöschte Partner kommen nach einem
+    // Neustart/Deploy NICHT mehr zurück (siehe IsSeededAsync/MarkSeededAsync).
     private static async Task SeedPartnersAsync(AppDbContext context)
     {
+        const string seedKey = "Partners";
+        if (await IsSeededAsync(context, seedKey))
+        {
+            return;
+        }
+
         var desiredPartners = new (string Name, string ImageUrl, int DisplayOrder)[]
         {
             ("K&K", "/images/partners/kk.png", 1),
@@ -87,15 +94,21 @@ public static class DbInitializer
             }
         }
 
+        await MarkSeededAsync(context, seedKey);
         await context.SaveChangesAsync();
     }
 
-    // Startpakete für den Detailing-Bereich (siehe DetailingController). Nur
-    // einmal einfügen, falls der Name noch nicht existiert — Admin kann Bilder
-    // und Beschreibungen später über die Verwaltung anpassen, ohne dass der
-    // Seed das bei jedem Neustart überschreibt.
+    // Startpakete für den Detailing-Bereich (siehe DetailingController). Läuft
+    // dank SeedFlag NUR BEIM ALLERERSTEN Mal — gelöschte oder umbenannte
+    // Pakete kommen nach einem Neustart/Deploy NICHT mehr zurück.
     private static async Task SeedDetailingPackagesAsync(AppDbContext context)
     {
+        const string seedKey = "DetailingPackages";
+        if (await IsSeededAsync(context, seedKey))
+        {
+            return;
+        }
+
         const string placeholderImage = "/images/service-detailing.png";
 
         var desiredPackages = new (string Name, string ShortDescription, string Content, int DisplayOrder)[]
@@ -145,7 +158,20 @@ public static class DbInitializer
             }
         }
 
+        await MarkSeededAsync(context, seedKey);
         await context.SaveChangesAsync();
+    }
+
+    // Prüft, ob ein einmaliger Seed-Lauf (siehe SeedFlag) schon stattgefunden
+    // hat. Wenn ja, wird nichts mehr eingefügt — auch dann nicht, wenn der
+    // Admin alle betroffenen Zeilen inzwischen gelöscht hat.
+    private static Task<bool> IsSeededAsync(AppDbContext context, string key)
+        => context.SeedFlags.AnyAsync(f => f.Key == key);
+
+    private static Task MarkSeededAsync(AppDbContext context, string key)
+    {
+        context.SeedFlags.Add(new SeedFlag { Key = key, SeededAt = DateTime.UtcNow });
+        return Task.CompletedTask;
     }
 
     // Список известных марок для справочника "подобрать деталь под мою машину".
