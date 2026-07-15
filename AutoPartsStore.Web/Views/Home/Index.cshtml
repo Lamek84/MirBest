@@ -46,7 +46,7 @@
         {
             <div class="category-card-wrapper">
                 <a class="category-card" asp-controller="Products" asp-action="Index" asp-route-categoryId="@category.Id">
-                    <img src="@category.ImageUrl" alt="@category.Name" />
+                    <img src="@(string.IsNullOrEmpty(category.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : category.ImageUrl)" alt="@category.Name" />
                     <span>@category.Name</span>
                 </a>
                 @if (User.IsInRole("Admin"))

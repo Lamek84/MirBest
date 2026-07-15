@@ -25,7 +25,7 @@ else
         @foreach (var category in Model)
         {
             <tr>
-                <td><img src="@category.ImageUrl" alt="@category.Name" class="cart-thumb" /></td>
+                <td><img src="@(string.IsNullOrEmpty(category.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : category.ImageUrl)" alt="@category.Name" class="cart-thumb" /></td>
                 <td>@category.Name</td>
                 <td>@category.Description</td>
                 <td>
