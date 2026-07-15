@@ -22,13 +22,42 @@
     // Баннер про cookies показываем, пока пользователь его не подтвердил
     // (см. cookie "CookieConsent", выставляется в JS внизу страницы).
     var cookieConsentGiven = Context.Request.Cookies.ContainsKey("CookieConsent");
+
+    // SEO: Title/Description sind pro View über ViewData["Title"]/["Description"]
+    // gesetzt, mit sinnvollem Standardwert, falls eine View das vergisst.
+    var pageTitle = ViewData["Title"] as string;
+    var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? "MIRBEST – Autoteile, Werkstatt & Detailing" : $"{pageTitle} - MIRBEST";
+    var pageDescription = ViewData["Description"] as string
+        ?? "MIRBEST – Autoteile, KFZ-Werkstatt und professionelles Fahrzeug-Detailing. Hochwertige Ersatzteile, fachgerechte Reparaturen und Fahrzeugaufbereitung.";
+
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var canonicalUrl = $"{baseUrl}{Context.Request.Path}";
+    var ogImageUrl = $"{baseUrl}/images/logo.png";
+
+    // Siehe Program.cs — CSP erlaubt inline-<script> nur mit passendem Nonce.
+    var cspNonce = Context.Items["CspNonce"] as string;
 }
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="de">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MirBest</title>
+    <title>@fullTitle</title>
+    <meta name="description" content="@pageDescription" />
+    <link rel="canonical" href="@canonicalUrl" />
+
+    @* Open Graph / Twitter Card — für eine ordentliche Vorschau beim Teilen
+       des Links in WhatsApp, Telegram, Facebook usw. *@
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MIRBEST" />
+    <meta property="og:title" content="@fullTitle" />
+    <meta property="og:description" content="@pageDescription" />
+    <meta property="og:url" content="@canonicalUrl" />
+    <meta property="og:image" content="@ogImageUrl" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="@fullTitle" />
+    <meta name="twitter:description" content="@pageDescription" />
+    <meta name="twitter:image" content="@ogImageUrl" />
 
     @* Mehrere Formate/Größen für konsistente Darstellung in allen Browsern:
        favicon.ico für ältere Browser, PNGs für moderne Browser, Apple-Touch-Icon
@@ -40,6 +69,31 @@
     <link rel="manifest" href="~/site.webmanifest" />
 
     <link rel="stylesheet" href="~/css/site.css" />
+
+    @* JSON-LD: strukturierte Daten für lokale Suche / Google Maps / Rich Results.
+       Echte Adresse/Telefon aus der Kontakt-Box (siehe DbInitializer). *@
+    <script type="application/ld+json" nonce="@cspNonce">
+    {
+        "@@context": "https://schema.org",
+        "@@type": ["AutoRepair", "AutoPartsStore"],
+        "name": "MIRBEST",
+        "image": "@ogImageUrl",
+        "url": "@baseUrl",
+        "telephone": "+4915566446608",
+        "email": "info@mirbest.de",
+        "address": {
+            "@@type": "PostalAddress",
+            "streetAddress": "Hinterm Sielhof 4",
+            "postalCode": "28277",
+            "addressLocality": "Bremen",
+            "addressCountry": "DE"
+        },
+        "sameAs": [
+            "https://www.facebook.com/mirplusde",
+            "https://www.instagram.com/mirbest.de/"
+        ]
+    }
+    </script>
 </head>
 <body>
     <header>

@@ -1,0 +1,27 @@
+User-agent: *
+
+# Admin-Bereiche (ohnehin durch [Authorize] geschützt, aber nicht crawlen)
+Disallow: /Categories/
+Disallow: /Customers/
+Disallow: /Partners/
+Disallow: /VehicleMakes/
+Disallow: /VehicleModels/
+Disallow: /Products/Create
+Disallow: /Products/Edit
+Disallow: /Products/Delete
+Disallow: /Detailing/Create
+Disallow: /Detailing/Edit
+Disallow: /Detailing/Delete
+Disallow: /Appointments/Index
+Disallow: /Appointments/Confirm
+Disallow: /Appointments/Cancel
+Disallow: /Legal/Index
+Disallow: /Legal/Edit
+
+# Persönliche/dynamische Bereiche ohne SEO-Wert
+Disallow: /Account/
+Disallow: /Cart/
+Disallow: /Orders/
+Disallow: /Payments/
+
+Sitemap: https://mirbest.de/sitemap.xml

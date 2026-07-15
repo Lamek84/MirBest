@@ -116,6 +116,13 @@ try
     // Bootstrap/inline-стиль вёрстки; если добавятся сторонние скрипты — расширить allowlist.
     app.Use(async (context, next) =>
     {
+        // Nonce für das eine inline JSON-LD-<script> in _Layout.cshtml (strukturierte
+        // Daten für Google/lokale Suche) — CSP erlaubt sonst gar kein inline-<script>.
+        // Pro Request neu erzeugt und über HttpContext.Items an die View gereicht.
+        var nonceBytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(16);
+        var nonce = Convert.ToBase64String(nonceBytes);
+        context.Items["CspNonce"] = nonce;
+
         var headers = context.Response.Headers;
         headers["X-Content-Type-Options"] = "nosniff";
         headers["X-Frame-Options"] = "DENY";
@@ -123,7 +130,7 @@ try
         headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
         headers["Content-Security-Policy"] =
             "default-src 'self'; " +
-            "script-src 'self'; " +
+            $"script-src 'self' 'nonce-{nonce}'; " +
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data: https:; " +
             "font-src 'self'; " +

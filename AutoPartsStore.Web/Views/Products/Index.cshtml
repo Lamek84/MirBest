@@ -1,6 +1,7 @@
 @model IReadOnlyList<Product>
 @{
     ViewData["Title"] = ViewData["CategoryName"] as string ?? "Ersatzteilkatalog";
+    ViewData["Description"] = "Hochwertige Autoteile bei MIRBEST: Bremsen, Motor, Fahrwerk, Elektrik und mehr — schnelle Lieferung, faire Preise.";
 }
 <h1>@(ViewData["CategoryName"] as string ?? "Ersatzteilkatalog")</h1>
 
