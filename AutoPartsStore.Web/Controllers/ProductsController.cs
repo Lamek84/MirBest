@@ -1,3 +1,4 @@
+using AutoPartsStore.Core.Catalog;
 using AutoPartsStore.Core.Entities;
 using AutoPartsStore.Core.Interfaces;
 using AutoPartsStore.Web.Models;
@@ -17,6 +18,8 @@ public class ProductsController : Controller
     private readonly ICategoryRepository _categoryRepository;
     private readonly IVehicleModelRepository _vehicleModelRepository;
     private readonly IProductVehicleFitmentRepository _fitmentRepository;
+    private readonly IProductReferenceNumberRepository _referenceNumberRepository;
+    private readonly IVehicleCatalogService _catalog;
     private readonly IWebHostEnvironment _env;
 
     public ProductsController(
@@ -24,12 +27,16 @@ public class ProductsController : Controller
         ICategoryRepository categoryRepository,
         IVehicleModelRepository vehicleModelRepository,
         IProductVehicleFitmentRepository fitmentRepository,
+        IProductReferenceNumberRepository referenceNumberRepository,
+        IVehicleCatalogService catalog,
         IWebHostEnvironment env)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _vehicleModelRepository = vehicleModelRepository;
         _fitmentRepository = fitmentRepository;
+        _referenceNumberRepository = referenceNumberRepository;
+        _catalog = catalog;
         _env = env;
     }
 
@@ -38,9 +45,21 @@ public class ProductsController : Controller
         string? search,
         string? manufacturer,
         decimal? minPrice,
-        decimal? maxPrice)
+        decimal? maxPrice,
+        string? vin)
     {
-        var products = await _productRepository.SearchAsync(categoryId, search, manufacturer, minPrice, maxPrice);
+        // Поиск по VIN — отдельная ветка того же каталога: VIN распознаётся во
+        // внешнем каталоге, оттуда берутся OEM-номера, по ним ищем свои товары.
+        // Остальные фильтры при VIN-поиске не применяются.
+        IReadOnlyList<Product> products;
+        if (!string.IsNullOrWhiteSpace(vin))
+        {
+            products = await SearchByVinAsync(vin);
+        }
+        else
+        {
+            products = await _productRepository.SearchAsync(categoryId, search, manufacturer, minPrice, maxPrice);
+        }
 
         if (categoryId.HasValue)
         {
@@ -56,8 +75,44 @@ public class ProductsController : Controller
         ViewData["CurrentManufacturer"] = manufacturer;
         ViewData["CurrentMinPrice"] = minPrice;
         ViewData["CurrentMaxPrice"] = maxPrice;
+        ViewData["CurrentVin"] = vin;
 
         return View(products);
+    }
+
+    // Поиск товаров по VIN через внешний каталог. Пока подключена заглушка
+    // (IVehicleCatalogService.IsConfigured == false), показываем подсказку.
+    // После подключения реального провайдера этот метод менять не нужно.
+    private async Task<IReadOnlyList<Product>> SearchByVinAsync(string vin)
+    {
+        if (!Vin.IsValid(vin))
+        {
+            ViewData["VinMessage"] = "Ungültige VIN. Eine VIN besteht aus 17 Zeichen (ohne I, O, Q).";
+            return Array.Empty<Product>();
+        }
+
+        if (!_catalog.IsConfigured)
+        {
+            ViewData["VinMessage"] = "Die Suche per VIN ist noch nicht aktiviert. Bitte suchen Sie vorerst über die OEM-Nummer.";
+            return Array.Empty<Product>();
+        }
+
+        var vehicle = await _catalog.DecodeVinAsync(vin);
+        if (vehicle is not null)
+        {
+            ViewData["VinVehicle"] = $"{vehicle.Make} {vehicle.Model}"
+                + (vehicle.Year is not null ? $" ({vehicle.Year})" : string.Empty);
+        }
+
+        var parts = await _catalog.GetPartsByVinAsync(vin);
+        var products = await _productRepository.SearchByReferenceNumbersAsync(parts.Select(p => p.OemNumber));
+
+        if (products.Count == 0)
+        {
+            ViewData["VinMessage"] = "Zu dieser VIN wurden keine passenden Teile in unserem Sortiment gefunden.";
+        }
+
+        return products;
     }
 
     [Authorize(Roles = "Admin")]
@@ -91,6 +146,7 @@ public class ProductsController : Controller
         {
             Name = model.Name,
             Description = model.Description,
+            Sku = model.Sku,
             PartNumber = model.PartNumber,
             Manufacturer = model.Manufacturer,
             Price = model.Price,
@@ -118,6 +174,7 @@ public class ProductsController : Controller
             Id = product.Id,
             Name = product.Name,
             Description = product.Description,
+            Sku = product.Sku,
             PartNumber = product.PartNumber,
             Manufacturer = product.Manufacturer,
             Price = product.Price,
@@ -128,6 +185,7 @@ public class ProductsController : Controller
 
         await PopulateCategoriesAsync(product.CategoryId);
         await PopulateFitmentDataAsync(id);
+        await PopulateReferenceNumbersAsync(id);
         ViewBag.ReturnUrl = returnUrl;
         return View(model);
     }
@@ -151,6 +209,7 @@ public class ProductsController : Controller
         {
             await PopulateCategoriesAsync(model.CategoryId);
             await PopulateFitmentDataAsync(id);
+            await PopulateReferenceNumbersAsync(id);
             ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
@@ -165,6 +224,7 @@ public class ProductsController : Controller
 
         product.Name = model.Name;
         product.Description = model.Description;
+        product.Sku = model.Sku;
         product.PartNumber = model.PartNumber;
         product.Manufacturer = model.Manufacturer;
         product.Price = model.Price;
@@ -236,6 +296,61 @@ public class ProductsController : Controller
         return RedirectToAction(nameof(Edit), new { id = productId });
     }
 
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddReferenceNumber(int productId, string number, ReferenceNumberType type, string? brand)
+    {
+        if (string.IsNullOrWhiteSpace(number))
+        {
+            TempData["ReferenceError"] = "Bitte eine Nummer eingeben.";
+            return RedirectToAction(nameof(Edit), new { id = productId });
+        }
+
+        var normalized = ProductReferenceNumber.Normalize(number);
+        if (normalized.Length == 0)
+        {
+            TempData["ReferenceError"] = "Die Nummer enthält keine gültigen Zeichen.";
+            return RedirectToAction(nameof(Edit), new { id = productId });
+        }
+
+        await _referenceNumberRepository.AddAsync(new ProductReferenceNumber
+        {
+            ProductId = productId,
+            Number = number.Trim(),
+            NormalizedNumber = normalized,
+            Type = type,
+            Brand = string.IsNullOrWhiteSpace(brand) ? null : brand.Trim()
+        });
+
+        try
+        {
+            await _referenceNumberRepository.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Такой же номер того же типа у товара уже есть (уникальный индекс).
+            TempData["ReferenceError"] = "Diese Nummer ist für dieses Ersatzteil bereits hinterlegt.";
+        }
+
+        return RedirectToAction(nameof(Edit), new { id = productId });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveReferenceNumber(int id, int productId)
+    {
+        var reference = await _referenceNumberRepository.GetByIdAsync(id);
+        if (reference is not null && reference.ProductId == productId)
+        {
+            _referenceNumberRepository.Remove(reference);
+            await _referenceNumberRepository.SaveChangesAsync();
+        }
+
+        return RedirectToAction(nameof(Edit), new { id = productId });
+    }
+
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id, string? returnUrl)
     {
@@ -293,6 +408,12 @@ public class ProductsController : Controller
         var models = await _vehicleModelRepository.GetAllWithMakeAsync();
         var modelOptions = models.Select(m => new { m.Id, DisplayText = $"{m.VehicleMake?.Name} – {m.Name}" });
         ViewBag.VehicleModelId = new SelectList(modelOptions, "Id", "DisplayText");
+    }
+
+    // OEM/кросс-номера товара для страницы редактирования (см. Products/Edit.cshtml).
+    private async Task PopulateReferenceNumbersAsync(int productId)
+    {
+        ViewBag.ReferenceNumbers = await _referenceNumberRepository.GetByProductAsync(productId);
     }
 
     private static bool IsValidImage(IFormFile image, out string? error)

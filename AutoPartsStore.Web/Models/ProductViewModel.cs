@@ -16,6 +16,9 @@ public class ProductViewModel
     public string? Description { get; set; }
 
     [StringLength(100)]
+    public string? Sku { get; set; }
+
+    [StringLength(100)]
     public string? PartNumber { get; set; }
 
     [StringLength(100)]

@@ -447,6 +447,10 @@ namespace AutoPartsStore.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Sku")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
@@ -456,7 +460,52 @@ namespace AutoPartsStore.Data.Migrations
 
                     b.HasIndex("PartNumber");
 
+                    b.HasIndex("Sku")
+                        .IsUnique()
+                        .HasFilter("[Sku] IS NOT NULL");
+
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("AutoPartsStore.Core.Entities.ProductReferenceNumber", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NormalizedNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedNumber");
+
+                    b.HasIndex("ProductId", "Type", "NormalizedNumber")
+                        .IsUnique();
+
+                    b.ToTable("ProductReferenceNumbers");
                 });
 
             modelBuilder.Entity("AutoPartsStore.Core.Entities.ProductVehicleFitment", b =>
@@ -810,6 +859,17 @@ namespace AutoPartsStore.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("AutoPartsStore.Core.Entities.ProductReferenceNumber", b =>
+                {
+                    b.HasOne("AutoPartsStore.Core.Entities.Product", "Product")
+                        .WithMany("ReferenceNumbers")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("AutoPartsStore.Core.Entities.ProductVehicleFitment", b =>
                 {
                     b.HasOne("AutoPartsStore.Core.Entities.Product", "Product")
@@ -901,6 +961,11 @@ namespace AutoPartsStore.Data.Migrations
             modelBuilder.Entity("AutoPartsStore.Core.Entities.Order", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("AutoPartsStore.Core.Entities.Product", b =>
+                {
+                    b.Navigation("ReferenceNumbers");
                 });
 
             modelBuilder.Entity("AutoPartsStore.Core.Entities.VehicleMake", b =>

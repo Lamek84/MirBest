@@ -25,12 +25,17 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="PartNumber">Artikelnummer</label>
+        <label asp-for="Sku">SKU (interne Artikelnummer)</label>
+        <input asp-for="Sku" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="PartNumber">Herstellernummer</label>
         <input asp-for="PartNumber" class="form-control" />
     </div>
 
     <div class="form-group">
-        <label asp-for="Manufacturer">Hersteller</label>
+        <label asp-for="Manufacturer">Marke</label>
         <input asp-for="Manufacturer" class="form-control" />
     </div>
 
@@ -146,4 +151,79 @@
     </form>
 
     <p class="product-meta">Verfügbare Marken/Modelle fehlen? <a asp-controller="VehicleMakes" asp-action="Index">Marken verwalten</a> · <a asp-controller="VehicleModels" asp-action="Index">Modelle verwalten</a></p>
+</section>
+
+<section class="fitment-section">
+    <h2>OEM- und Vergleichsnummern</h2>
+    <p class="product-meta">Grundlage für die Teilesuche nach VIN und OEM-Nummer.</p>
+
+    @if (TempData["ReferenceError"] != null)
+    {
+        <p class="text-danger">@TempData["ReferenceError"]</p>
+    }
+
+    @{
+        var references = ViewBag.ReferenceNumbers as IReadOnlyList<ProductReferenceNumber>;
+    }
+
+    @if (references is null || !references.Any())
+    {
+        <p class="product-meta">Noch keine Nummern hinterlegt.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Typ</th>
+                    <th>Nummer</th>
+                    <th>Marke</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var reference in references)
+            {
+                <tr>
+                    <td>@(reference.Type == ReferenceNumberType.Oem ? "OEM" : "Vergleich")</td>
+                    <td>@reference.Number</td>
+                    <td>@reference.Brand</td>
+                    <td>
+                        <form asp-action="RemoveReferenceNumber" method="post" class="inline-form">
+                            <input type="hidden" name="id" value="@reference.Id" />
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-danger icon-btn" title="Entfernen">
+                                <partial name="_Icon" model="@("trash")" />
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+
+    <form asp-action="AddReferenceNumber" method="post" class="fitment-add-form">
+        <input type="hidden" name="productId" value="@Model.Id" />
+
+        <div class="form-group">
+            <label>Typ</label>
+            <select name="type" class="form-control">
+                <option value="@((int)ReferenceNumberType.Oem)">OEM-Nummer</option>
+                <option value="@((int)ReferenceNumberType.Cross)">Vergleichsnummer</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Nummer</label>
+            <input type="text" name="number" class="form-control" placeholder="z. B. 1K0 615 301 AA" />
+        </div>
+
+        <div class="form-group">
+            <label>Marke (optional)</label>
+            <input type="text" name="brand" class="form-control" placeholder="z. B. BOSCH" />
+        </div>
+
+        <button type="submit" class="btn">Nummer hinzufügen</button>
+    </form>
 </section>

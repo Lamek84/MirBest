@@ -17,7 +17,7 @@
 
     <div class="filter-field">
         <label for="search">Suche</label>
-        <input type="text" id="search" name="search" value="@ViewData["CurrentSearch"]" placeholder="Name oder Artikelnummer" class="form-control" />
+        <input type="text" id="search" name="search" value="@ViewData["CurrentSearch"]" placeholder="Name, Artikel- oder OEM-Nummer" class="form-control" />
     </div>
 
     <div class="filter-field">
@@ -44,6 +44,27 @@
     </div>
 </form>
 
+@* VIN-Suche vorübergehend ausgeblendet — wird später fertig angebunden und wieder eingeblendet.
+<form asp-action="Index" method="get" class="filter-form">
+    <div class="filter-field">
+        <label for="vin">Suche per VIN</label>
+        <input type="text" id="vin" name="vin" value="@ViewData["CurrentVin"]" maxlength="17" placeholder="Fahrzeug-Identifizierungsnummer (17 Zeichen)" class="form-control" />
+    </div>
+    <div class="filter-actions">
+        <button type="submit" class="btn">Per VIN suchen</button>
+    </div>
+</form>
+
+@if (ViewData["VinVehicle"] != null)
+{
+    <p class="product-meta">Erkanntes Fahrzeug: <strong>@ViewData["VinVehicle"]</strong></p>
+}
+@if (ViewData["VinMessage"] != null)
+{
+    <p class="text-danger">@ViewData["VinMessage"]</p>
+}
+*@
+
 @if (User.IsInRole("Admin"))
 {
     <p>
@@ -61,7 +82,7 @@
 }
 else
 {
-    <div class="card-grid">
+    <div class="product-grid">
         @foreach (var p in Model)
         {
             <div class="product-card">

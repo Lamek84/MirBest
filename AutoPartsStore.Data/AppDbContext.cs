@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<VehicleMake> VehicleMakes => Set<VehicleMake>();
     public DbSet<VehicleModel> VehicleModels => Set<VehicleModel>();
     public DbSet<ProductVehicleFitment> ProductVehicleFitments => Set<ProductVehicleFitment>();
+    public DbSet<ProductReferenceNumber> ProductReferenceNumbers => Set<ProductReferenceNumber>();
     public DbSet<LegalPage> LegalPages => Set<LegalPage>();
     public DbSet<Partner> Partners => Set<Partner>();
     public DbSet<DetailingPackage> DetailingPackages => Set<DetailingPackage>();

@@ -1,4 +1,5 @@
 using AutoPartsStore.Core.Interfaces;
+using AutoPartsStore.Infrastructure.Catalog;
 using AutoPartsStore.Infrastructure.Email;
 using AutoPartsStore.Infrastructure.Payments;
 using AutoPartsStore.Infrastructure.Repositories;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IVehicleMakeRepository, VehicleMakeRepository>();
         services.AddScoped<IVehicleModelRepository, VehicleModelRepository>();
         services.AddScoped<IProductVehicleFitmentRepository, ProductVehicleFitmentRepository>();
+        services.AddScoped<IProductReferenceNumberRepository, ProductReferenceNumberRepository>();
         services.AddScoped<ILegalPageRepository, LegalPageRepository>();
         services.AddScoped<IPartnerRepository, PartnerRepository>();
         services.AddScoped<IDetailingPackageRepository, DetailingPackageRepository>();
@@ -35,6 +37,14 @@ public static class DependencyInjection
         // переменных окружения хостинга — appsettings.json попадает в git.
         services.Configure<StripeSettings>(configuration.GetSection("Stripe"));
         services.AddScoped<IPaymentService, StripePaymentService>();
+
+        // Внешний каталог запчастей (поиск по VIN). Пока подключена заглушка —
+        // поиск по OEM-номеру из своей базы уже работает, а VIN-поиск отдаёт
+        // "не настроено". Чтобы включить реального провайдера: зарегистрировать
+        // его реализацию IVehicleCatalogService вместо NullVehicleCatalogService
+        // (обычно через services.AddHttpClient<IVehicleCatalogService, XxxService>()).
+        services.Configure<VehicleCatalogSettings>(configuration.GetSection("VehicleCatalog"));
+        services.AddScoped<IVehicleCatalogService, NullVehicleCatalogService>();
 
         return services;
     }

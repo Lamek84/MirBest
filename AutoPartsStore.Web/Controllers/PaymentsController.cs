@@ -141,8 +141,12 @@ public class PaymentsController : Controller
         {
             order.Status = OrderStatus.Paid;
 
-            // Bonuspunkte-Programm: 1 Punkt je bezahltem Euro (abgerundet).
-            order.PointsEarned = (int)Math.Floor(order.TotalAmount);
+            // Bonuspunkte-Programm: 1 Punkt je bezahltem Euro (abgerundet) —
+            // aber nur, wenn der Bestellwert über der Mindestschwelle liegt.
+            const decimal MinPurchaseAmountForPoints = 300m;
+            order.PointsEarned = order.TotalAmount > MinPurchaseAmountForPoints
+                ? (int)Math.Floor(order.TotalAmount)
+                : 0;
             _orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
 
