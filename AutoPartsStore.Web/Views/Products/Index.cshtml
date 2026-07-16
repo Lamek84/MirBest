@@ -54,7 +54,7 @@ else
         @foreach (var p in Model)
         {
             <div class="product-card">
-                <img src="@p.ImageUrl" alt="@p.Name" />
+                <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : p.ImageUrl)" alt="@p.Name" />
                 <h3>@p.Name</h3>
                 <p class="product-meta">Art.-Nr. @p.PartNumber · @p.Manufacturer</p>
                 <p class="product-price">@p.Price.ToString("N2") €</p>

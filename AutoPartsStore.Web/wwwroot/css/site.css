@@ -13,6 +13,21 @@ header {
     padding: 12px 24px;
 }
 
+.breadcrumb {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.breadcrumb a {
+    color: #1f2d3d;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
 header nav {
     display: flex;
     align-items: center;
@@ -584,6 +599,62 @@ a.service-card:hover {
 
 .catalog-section h2 {
     margin-bottom: 20px;
+}
+
+.direct-products-heading {
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.subcategory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 560px;
+}
+
+.subcategory-row-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.subcategory-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    padding: 10px 16px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #222;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.subcategory-row:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.subcategory-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #1f2d3d;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.subcategory-name {
+    flex: 1;
+    font-weight: 600;
 }
 
 .partners-section {

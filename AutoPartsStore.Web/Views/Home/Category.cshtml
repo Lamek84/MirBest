@@ -1,0 +1,98 @@
+@model IReadOnlyList<Category>
+@{
+    var breadcrumb = ViewBag.Breadcrumb as List<Category> ?? new List<Category>();
+    var currentCategory = ViewBag.CurrentCategory as Category;
+    ViewData["Title"] = currentCategory?.Name ?? "Kategorien";
+    ViewData["Description"] = $"{currentCategory?.Name} bei MIRBEST — wähle eine Unterkategorie, um passende Ersatzteile zu finden.";
+}
+
+<nav class="breadcrumb">
+    <a asp-controller="Home" asp-action="Index" asp-fragment="kategorien">Alle Kategorien</a>
+    @foreach (var crumb in breadcrumb)
+    {
+        <span> / </span>
+        @if (crumb.Id == currentCategory?.Id)
+        {
+            <span>@crumb.Name</span>
+        }
+        else
+        {
+            <a asp-controller="Home" asp-action="Category" asp-route-id="@crumb.Id">@crumb.Name</a>
+        }
+    }
+</nav>
+
+<h1>@currentCategory?.Name</h1>
+
+@if (User.IsInRole("Admin"))
+{
+    <p>
+        <a asp-controller="Categories" asp-action="Create" asp-route-parentId="@currentCategory?.Id" class="btn">Unterkategorie hinzufügen</a>
+        <a asp-controller="Products" asp-action="Create" asp-route-categoryId="@currentCategory?.Id" class="btn btn-secondary">Ersatzteil hinzufügen</a>
+        <a asp-controller="Categories" asp-action="Edit" asp-route-id="@currentCategory?.Id" class="btn btn-secondary">Diese Kategorie bearbeiten</a>
+    </p>
+}
+
+<div class="subcategory-list">
+    @foreach (var category in Model)
+    {
+        <div class="subcategory-row-wrapper">
+            <a class="subcategory-row" asp-controller="Home" asp-action="Category" asp-route-id="@category.Id">
+                <span class="subcategory-icon" aria-hidden="true">→</span>
+                <span class="subcategory-name">@category.Name</span>
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <p class="category-admin-actions">
+                    <a asp-controller="Categories" asp-action="Edit" asp-route-id="@category.Id" class="icon-link" title="Bearbeiten">
+                        <partial name="_Icon" model="@("edit")" />
+                    </a>
+                    <a asp-controller="Categories" asp-action="Delete" asp-route-id="@category.Id" class="icon-link" title="Löschen">
+                        <partial name="_Icon" model="@("trash")" />
+                    </a>
+                </p>
+            }
+        </div>
+    }
+</div>
+
+@{
+    var directProducts = ViewBag.DirectProducts as IReadOnlyList<Product> ?? new List<Product>();
+}
+@if (directProducts.Any())
+{
+    <h2 class="direct-products-heading">Ersatzteile direkt in "@currentCategory?.Name"</h2>
+    <div class="card-grid">
+        @foreach (var p in directProducts)
+        {
+            <div class="product-card">
+                <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : p.ImageUrl)" alt="@p.Name" />
+                <h3>@p.Name</h3>
+                <p class="product-meta">Art.-Nr. @p.PartNumber · @p.Manufacturer</p>
+                <p class="product-price">@p.Price.ToString("N2") €</p>
+                <p class="product-meta">Bestand: @p.StockQuantity</p>
+
+                <form asp-controller="Cart" asp-action="Add" method="post" class="add-to-cart-form">
+                    <input type="hidden" name="productId" value="@p.Id" />
+                    <input type="number" name="quantity" value="1" min="1" class="qty-input" />
+                    <button type="submit" class="btn icon-btn">
+                        <partial name="_Icon" model="@("cart")" />
+                        <span>In den Warenkorb</span>
+                    </button>
+                </form>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <p>
+                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id" class="icon-link" title="Bearbeiten">
+                            <partial name="_Icon" model="@("edit")" />
+                        </a>
+                        <a asp-controller="Products" asp-action="Delete" asp-route-id="@p.Id" class="icon-link" title="Löschen">
+                            <partial name="_Icon" model="@("trash")" />
+                        </a>
+                    </p>
+                }
+            </div>
+        }
+    </div>
+}

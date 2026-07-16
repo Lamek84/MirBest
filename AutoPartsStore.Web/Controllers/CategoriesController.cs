@@ -2,6 +2,7 @@ using AutoPartsStore.Core.Entities;
 using AutoPartsStore.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutoPartsStore.Web.Controllers;
@@ -24,12 +25,24 @@ public class CategoriesController : Controller
     public async Task<IActionResult> Index()
     {
         var categories = await _categoryRepository.GetAllAsync();
-        return View(categories);
+
+        // ParentCategory-Navigation ist hier nicht geladen (kein Include/Lazy Loading),
+        // daher Elternnamen selbst per Dictionary auflösen statt c.ParentCategory zu nutzen.
+        var namesById = categories.ToDictionary(c => c.Id, c => c.Name);
+        ViewBag.ParentNames = namesById;
+
+        var sorted = categories
+            .OrderBy(c => c.ParentCategoryId.HasValue && namesById.TryGetValue(c.ParentCategoryId.Value, out var parentName) ? parentName : c.Name)
+            .ThenBy(c => c.Name)
+            .ToList();
+
+        return View(sorted);
     }
 
-    public IActionResult Create()
+    public async Task<IActionResult> Create(int? parentId)
     {
-        return View();
+        await PopulateParentCategoriesAsync(parentId);
+        return View(new Category { ParentCategoryId = parentId });
     }
 
     [HttpPost]
@@ -43,6 +56,7 @@ public class CategoriesController : Controller
 
         if (!ModelState.IsValid)
         {
+            await PopulateParentCategoriesAsync(category.ParentCategoryId);
             return View(category);
         }
 
@@ -64,6 +78,7 @@ public class CategoriesController : Controller
             return NotFound();
         }
 
+        await PopulateParentCategoriesAsync(category.ParentCategoryId, excludeId: id);
         return View(category);
     }
 
@@ -76,6 +91,11 @@ public class CategoriesController : Controller
             return BadRequest();
         }
 
+        if (category.ParentCategoryId == id)
+        {
+            ModelState.AddModelError(string.Empty, "Eine Kategorie kann nicht ihre eigene Übergeordnete sein.");
+        }
+
         if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
         {
             ModelState.AddModelError(string.Empty, validationError!);
@@ -83,6 +103,7 @@ public class CategoriesController : Controller
 
         if (!ModelState.IsValid)
         {
+            await PopulateParentCategoriesAsync(category.ParentCategoryId, excludeId: id);
             return View(category);
         }
 
@@ -124,14 +145,25 @@ public class CategoriesController : Controller
             }
             catch (DbUpdateException)
             {
-                // У категории ещё есть товары (Restrict/защита от каскадного удаления
-                // на стороне БД по умолчанию у EF) — сообщаем понятно вместо 500-й ошибки.
-                ModelState.AddModelError(string.Empty, "Diese Kategorie kann nicht gelöscht werden, solange ihr noch Ersatzteile zugeordnet sind.");
+                // У категории ещё есть товары ИЛИ подкатегории (Restrict/защита от
+                // каскадного удаления на стороне БД) — сообщаем понятно вместо 500-й ошибки.
+                ModelState.AddModelError(string.Empty, "Diese Kategorie kann nicht gelöscht werden, solange ihr noch Ersatzteile oder Unterkategorien zugeordnet sind.");
                 return View(category);
             }
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // Auswahlliste für "Übergeordnete Kategorie" in Create/Edit — auf Edit schließen
+    // wir die Kategorie selbst aus (kann nicht ihr eigenes Elternteil sein).
+    // Tiefere Zyklen (z. B. Enkel als Elternteil) werden hier bewusst nicht geprüft —
+    // bei der überschaubaren Kategorienanzahl reicht die Admin-Sorgfalt aus.
+    private async Task PopulateParentCategoriesAsync(int? selectedParentId, int? excludeId = null)
+    {
+        var categories = await _categoryRepository.GetAllAsync();
+        var options = categories.Where(c => c.Id != excludeId).OrderBy(c => c.Name);
+        ViewBag.ParentCategoryId = new SelectList(options, "Id", "Name", selectedParentId);
     }
 
     private static bool IsValidImage(IFormFile image, out string? error)

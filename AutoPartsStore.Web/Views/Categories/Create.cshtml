@@ -19,6 +19,13 @@
     </div>
 
     <div class="form-group">
+        <label asp-for="ParentCategoryId">Übergeordnete Kategorie (optional)</label>
+        <select asp-for="ParentCategoryId" asp-items="ViewBag.ParentCategoryId" class="form-control">
+            <option value="">-- Oberste Ebene --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
         <label for="image">Bild</label>
         <input type="file" id="image" name="image" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
         <small>PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>

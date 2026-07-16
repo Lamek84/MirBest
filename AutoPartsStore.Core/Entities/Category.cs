@@ -12,5 +12,12 @@ public class Category : BaseEntity
 
     public string? ImageUrl { get; set; }
 
+    // Selbstreferenz für die Kategorie-Hierarchie (z. B. Wartungsteile > Filter >
+    // Ölfilter). Null = oberste Ebene. Siehe HomeController.Category für die
+    // öffentliche Navigation durch den Baum.
+    public int? ParentCategoryId { get; set; }
+    public Category? ParentCategory { get; set; }
+    public ICollection<Category> Subcategories { get; set; } = new List<Category>();
+
     public ICollection<Product> Products { get; set; } = new List<Product>();
 }

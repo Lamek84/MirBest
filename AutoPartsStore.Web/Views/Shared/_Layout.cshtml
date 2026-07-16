@@ -68,7 +68,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="~/apple-touch-icon.png" />
     <link rel="manifest" href="~/site.webmanifest" />
 
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     @* JSON-LD: strukturierte Daten für lokale Suche / Google Maps / Rich Results.
        Echte Adresse/Telefon aus der Kontakt-Box (siehe DbInitializer). *@
@@ -206,7 +206,7 @@
         </div>
     }
 
-    <script src="~/js/site.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

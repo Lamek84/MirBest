@@ -7,7 +7,7 @@
 <section class="services-section">
     <h2>Unsere Hauptdienstleistungen</h2>
     <div class="services-grid">
-        <a class="service-card" asp-controller="Products" asp-action="Index">
+        <a class="service-card" asp-controller="Home" asp-action="Index" asp-fragment="kategorien">
             <img src="~/images/service-parts.png" alt="Autoteile" />
             <h3>Autoteile</h3>
             <p>Wir bieten hochwertige Autoteile und Zubehör, die perfekt zu den Bedürfnissen Ihres Fahrzeugs passen.</p>
@@ -25,7 +25,7 @@
     </div>
 </section>
 
-<section class="catalog-section">
+<section class="catalog-section" id="kategorien">
     <h2>Autoteile – unsere Kategorien</h2>
 
     @if (User.IsInRole("Admin"))
@@ -45,7 +45,7 @@
         @foreach (var category in Model)
         {
             <div class="category-card-wrapper">
-                <a class="category-card" asp-controller="Products" asp-action="Index" asp-route-categoryId="@category.Id">
+                <a class="category-card" asp-controller="Home" asp-action="Category" asp-route-id="@category.Id">
                     <img src="@(string.IsNullOrEmpty(category.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : category.ImageUrl)" alt="@category.Name" />
                     <span>@category.Name</span>
                 </a>

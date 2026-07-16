@@ -136,10 +136,14 @@ namespace AutoPartsStore.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<int?>("ParentCategoryId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
+                    b.HasIndex("ParentCategoryId", "Name")
+                        .IsUnique()
+                        .HasFilter("[ParentCategoryId] IS NOT NULL");
 
                     b.ToTable("Categories");
                 });
@@ -766,6 +770,16 @@ namespace AutoPartsStore.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("AutoPartsStore.Core.Entities.Category", b =>
+                {
+                    b.HasOne("AutoPartsStore.Core.Entities.Category", "ParentCategory")
+                        .WithMany("Subcategories")
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentCategory");
+                });
+
             modelBuilder.Entity("AutoPartsStore.Core.Entities.OrderItem", b =>
                 {
                     b.HasOne("AutoPartsStore.Core.Entities.Order", "Order")
@@ -880,6 +894,8 @@ namespace AutoPartsStore.Data.Migrations
             modelBuilder.Entity("AutoPartsStore.Core.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+
+                    b.Navigation("Subcategories");
                 });
 
             modelBuilder.Entity("AutoPartsStore.Core.Entities.Order", b =>

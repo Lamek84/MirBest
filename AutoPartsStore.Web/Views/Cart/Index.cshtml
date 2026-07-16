@@ -29,7 +29,7 @@ else
         @foreach (var item in Model)
         {
             <tr>
-                <td><img src="@item.Product!.ImageUrl" alt="@item.Product.Name" class="cart-thumb" /></td>
+                <td><img src="@(string.IsNullOrEmpty(item.Product!.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : item.Product.ImageUrl)" alt="@item.Product.Name" class="cart-thumb" /></td>
                 <td>@item.Product.Name</td>
                 <td>@item.Product.Price.ToString("N2") €</td>
                 <td>
@@ -124,5 +124,5 @@ else
 }
 
 @section Scripts {
-    <script src="~/js/cart-checkout.js"></script>
+    <script src="~/js/cart-checkout.js" asp-append-version="true"></script>
 }

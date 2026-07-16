@@ -10,21 +10,27 @@ namespace AutoPartsStore.Web.Controllers;
 
 public class ProductsController : Controller
 {
+    private static readonly string[] AllowedExtensions = { ".png", ".jpg", ".jpeg", ".svg", ".webp" };
+    private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
+
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IVehicleModelRepository _vehicleModelRepository;
     private readonly IProductVehicleFitmentRepository _fitmentRepository;
+    private readonly IWebHostEnvironment _env;
 
     public ProductsController(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         IVehicleModelRepository vehicleModelRepository,
-        IProductVehicleFitmentRepository fitmentRepository)
+        IProductVehicleFitmentRepository fitmentRepository,
+        IWebHostEnvironment env)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _vehicleModelRepository = vehicleModelRepository;
         _fitmentRepository = fitmentRepository;
+        _env = env;
     }
 
     public async Task<IActionResult> Index(
@@ -55,17 +61,22 @@ public class ProductsController : Controller
     }
 
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(int? categoryId)
     {
-        await PopulateCategoriesAsync();
-        return View(new ProductViewModel());
+        await PopulateCategoriesAsync(categoryId);
+        return View(new ProductViewModel { CategoryId = categoryId ?? 0 });
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProductViewModel model)
+    public async Task<IActionResult> Create(ProductViewModel model, IFormFile? image)
     {
+        if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
+        {
+            ModelState.AddModelError(string.Empty, validationError!);
+        }
+
         if (!ModelState.IsValid)
         {
             await PopulateCategoriesAsync(model.CategoryId);
@@ -83,7 +94,7 @@ public class ProductsController : Controller
             Price = model.Price,
             StockQuantity = model.StockQuantity,
             CategoryId = model.CategoryId,
-            ImageUrl = model.ImageUrl
+            ImageUrl = image is not null && image.Length > 0 ? await SaveImageAsync(image) : null
         };
 
         await _productRepository.AddAsync(product);
@@ -121,11 +132,16 @@ public class ProductsController : Controller
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, ProductViewModel model)
+    public async Task<IActionResult> Edit(int id, ProductViewModel model, IFormFile? image)
     {
         if (id != model.Id)
         {
             return BadRequest();
+        }
+
+        if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
+        {
+            ModelState.AddModelError(string.Empty, validationError!);
         }
 
         if (!ModelState.IsValid)
@@ -150,7 +166,12 @@ public class ProductsController : Controller
         product.Price = model.Price;
         product.StockQuantity = model.StockQuantity;
         product.CategoryId = model.CategoryId;
-        product.ImageUrl = model.ImageUrl;
+
+        // Bisheriges Bild bleibt erhalten, falls keine neue Datei hochgeladen wurde.
+        if (image is not null && image.Length > 0)
+        {
+            product.ImageUrl = await SaveImageAsync(image);
+        }
 
         _productRepository.Update(product);
         await _productRepository.SaveChangesAsync();
@@ -254,5 +275,38 @@ public class ProductsController : Controller
         var models = await _vehicleModelRepository.GetAllWithMakeAsync();
         var modelOptions = models.Select(m => new { m.Id, DisplayText = $"{m.VehicleMake?.Name} – {m.Name}" });
         ViewBag.VehicleModelId = new SelectList(modelOptions, "Id", "DisplayText");
+    }
+
+    private static bool IsValidImage(IFormFile image, out string? error)
+    {
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            error = "Nicht unterstütztes Bildformat. Erlaubt: PNG, JPG, SVG, WEBP.";
+            return false;
+        }
+
+        if (image.Length > MaxFileSizeBytes)
+        {
+            error = "Die Datei ist zu groß (maximal 5 MB).";
+            return false;
+        }
+
+        error = null;
+        return true;
+    }
+
+    private async Task<string> SaveImageAsync(IFormFile image)
+    {
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        var fileName = $"{Guid.NewGuid():N}{extension}";
+        var folder = Path.Combine(_env.WebRootPath, "images", "products");
+        Directory.CreateDirectory(folder);
+        var filePath = Path.Combine(folder, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await image.CopyToAsync(stream);
+
+        return $"/images/products/{fileName}";
     }
 }
