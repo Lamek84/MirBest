@@ -16,6 +16,7 @@
 </dl>
 
 <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
     <button type="submit" class="btn btn-danger">Löschen</button>
-    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+    <a href="@(string.IsNullOrEmpty(ViewBag.ReturnUrl as string) ? Url.Action("Index") : ViewBag.ReturnUrl)" class="btn btn-secondary">Abbrechen</a>
 </form>

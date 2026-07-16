@@ -2,6 +2,11 @@
 @{
     ViewData["Title"] = ViewData["CategoryName"] as string ?? "Ersatzteilkatalog";
     ViewData["Description"] = "Hochwertige Autoteile bei MIRBEST: Bremsen, Motor, Fahrwerk, Elektrik und mehr — schnelle Lieferung, faire Preise.";
+
+    // Für "zurück zur Ausgangsseite" nach Create/Edit/Delete — inkl. aktueller
+    // Filter (categoryId, Suche, Hersteller, Preisspanne).
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+    var currentCategoryId = ViewData["CurrentCategoryId"] as int?;
 }
 <h1>@(ViewData["CategoryName"] as string ?? "Ersatzteilkatalog")</h1>
 
@@ -41,7 +46,13 @@
 
 @if (User.IsInRole("Admin"))
 {
-    <p><a asp-action="Create" class="btn">Neues Ersatzteil hinzufügen</a></p>
+    <p>
+        @if (currentCategoryId.HasValue)
+        {
+            <a asp-controller="Categories" asp-action="Create" asp-route-parentId="@currentCategoryId" asp-route-returnUrl="@currentUrl" class="btn btn-secondary">Unterkategorie hinzufügen</a>
+        }
+        <a asp-action="Create" asp-route-categoryId="@currentCategoryId" asp-route-returnUrl="@currentUrl" class="btn">Neues Ersatzteil hinzufügen</a>
+    </p>
 }
 
 @if (!Model.Any())
@@ -72,10 +83,10 @@ else
                 @if (User.IsInRole("Admin"))
                 {
                     <p>
-                        <a asp-action="Edit" asp-route-id="@p.Id" class="icon-link" title="Bearbeiten">
+                        <a asp-action="Edit" asp-route-id="@p.Id" asp-route-returnUrl="@currentUrl" class="icon-link" title="Bearbeiten">
                             <partial name="_Icon" model="@("edit")" />
                         </a>
-                        <a asp-action="Delete" asp-route-id="@p.Id" class="icon-link" title="Löschen">
+                        <a asp-action="Delete" asp-route-id="@p.Id" asp-route-returnUrl="@currentUrl" class="icon-link" title="Löschen">
                             <partial name="_Icon" model="@("trash")" />
                         </a>
                     </p>

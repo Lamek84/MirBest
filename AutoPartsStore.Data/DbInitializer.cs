@@ -202,9 +202,16 @@ public static class DbInitializer
 
     private static async Task SeedCatalogAsync(AppDbContext context)
     {
-        // Идемпотентно: не просто "если пусто — вставить", а "докатить" то, чего не хватает,
-        // и подставить ImageUrl там, где он ещё не задан. Так повторные запуски безопасны
-        // даже если каталог уже частично заполнен старыми данными.
+        // Läuft dank SeedFlag NUR BEIM ALLERERSTEN Mal — sonst kämen vom Admin
+        // gelöschte Demo-Kategorien/-Produkte bei jedem Neustart/Deploy zurück
+        // (genau das Problem, das SeedPartnersAsync/SeedDetailingPackagesAsync
+        // schon per Flag gelöst haben).
+        const string seedKey = "Catalog";
+        if (await IsSeededAsync(context, seedKey))
+        {
+            return;
+        }
+
         var desiredCategories = new (string Name, string ImageUrl)[]
         {
             ("Bremsanlage", "/images/categories/bremsanlage.svg"),
@@ -269,6 +276,7 @@ public static class DbInitializer
             }
         }
 
+        await MarkSeededAsync(context, seedKey);
         await context.SaveChangesAsync();
     }
 

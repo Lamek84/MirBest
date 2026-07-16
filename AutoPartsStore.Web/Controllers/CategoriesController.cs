@@ -39,15 +39,16 @@ public class CategoriesController : Controller
         return View(sorted);
     }
 
-    public async Task<IActionResult> Create(int? parentId)
+    public async Task<IActionResult> Create(int? parentId, string? returnUrl)
     {
         await PopulateParentCategoriesAsync(parentId);
+        ViewBag.ReturnUrl = returnUrl;
         return View(new Category { ParentCategoryId = parentId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Category category, IFormFile? image)
+    public async Task<IActionResult> Create(Category category, IFormFile? image, string? returnUrl)
     {
         if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
         {
@@ -57,6 +58,7 @@ public class CategoriesController : Controller
         if (!ModelState.IsValid)
         {
             await PopulateParentCategoriesAsync(category.ParentCategoryId);
+            ViewBag.ReturnUrl = returnUrl;
             return View(category);
         }
 
@@ -67,7 +69,7 @@ public class CategoriesController : Controller
 
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToReturnUrlOrIndex(returnUrl);
     }
 
     public async Task<IActionResult> Edit(int id)
@@ -150,6 +152,18 @@ public class CategoriesController : Controller
                 ModelState.AddModelError(string.Empty, "Diese Kategorie kann nicht gelöscht werden, solange ihr noch Ersatzteile oder Unterkategorien zugeordnet sind.");
                 return View(category);
             }
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // Zurück zur Seite, von der aus die Kategorie angelegt wurde (z. B. Products/Index
+    // einer Blattkategorie oder Home/Category), statt immer starr zur Kategorienliste.
+    private IActionResult RedirectToReturnUrlOrIndex(string? returnUrl)
+    {
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
         }
 
         return RedirectToAction(nameof(Index));

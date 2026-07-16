@@ -61,16 +61,17 @@ public class ProductsController : Controller
     }
 
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create(int? categoryId)
+    public async Task<IActionResult> Create(int? categoryId, string? returnUrl)
     {
         await PopulateCategoriesAsync(categoryId);
+        ViewBag.ReturnUrl = returnUrl;
         return View(new ProductViewModel { CategoryId = categoryId ?? 0 });
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProductViewModel model, IFormFile? image)
+    public async Task<IActionResult> Create(ProductViewModel model, IFormFile? image, string? returnUrl)
     {
         if (image is not null && image.Length > 0 && !IsValidImage(image, out var validationError))
         {
@@ -80,6 +81,7 @@ public class ProductsController : Controller
         if (!ModelState.IsValid)
         {
             await PopulateCategoriesAsync(model.CategoryId);
+            ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
 
@@ -99,11 +101,11 @@ public class ProductsController : Controller
 
         await _productRepository.AddAsync(product);
         await _productRepository.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToReturnUrlOrIndex(returnUrl);
     }
 
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Edit(int id)
+    public async Task<IActionResult> Edit(int id, string? returnUrl)
     {
         var product = await _productRepository.GetByIdAsync(id);
         if (product is null)
@@ -126,13 +128,14 @@ public class ProductsController : Controller
 
         await PopulateCategoriesAsync(product.CategoryId);
         await PopulateFitmentDataAsync(id);
+        ViewBag.ReturnUrl = returnUrl;
         return View(model);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, ProductViewModel model, IFormFile? image)
+    public async Task<IActionResult> Edit(int id, ProductViewModel model, IFormFile? image, string? returnUrl)
     {
         if (id != model.Id)
         {
@@ -148,6 +151,7 @@ public class ProductsController : Controller
         {
             await PopulateCategoriesAsync(model.CategoryId);
             await PopulateFitmentDataAsync(id);
+            ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
 
@@ -175,7 +179,7 @@ public class ProductsController : Controller
 
         _productRepository.Update(product);
         await _productRepository.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToReturnUrlOrIndex(returnUrl);
     }
 
     [HttpPost]
@@ -233,7 +237,7 @@ public class ProductsController : Controller
     }
 
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, string? returnUrl)
     {
         var product = await _productRepository.GetByIdAsync(id);
         if (product is null)
@@ -241,19 +245,33 @@ public class ProductsController : Controller
             return NotFound();
         }
 
+        ViewBag.ReturnUrl = returnUrl;
         return View(product);
     }
 
     [HttpPost, ActionName("Delete")]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<IActionResult> DeleteConfirmed(int id, string? returnUrl)
     {
         var product = await _productRepository.GetByIdAsync(id);
         if (product is not null)
         {
             _productRepository.Remove(product);
             await _productRepository.SaveChangesAsync();
+        }
+
+        return RedirectToReturnUrlOrIndex(returnUrl);
+    }
+
+    // Zurück zur Seite, von der aus die Aktion gestartet wurde (Products/Index
+    // mit Filtern oder Home/Category), statt immer starr zur Produktliste.
+    // Url.IsLocalUrl schützt vor Open-Redirect über einen manipulierten Parameter.
+    private IActionResult RedirectToReturnUrlOrIndex(string? returnUrl)
+    {
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
         }
 
         return RedirectToAction(nameof(Index));

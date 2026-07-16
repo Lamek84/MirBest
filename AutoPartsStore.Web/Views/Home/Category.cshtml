@@ -4,6 +4,9 @@
     var currentCategory = ViewBag.CurrentCategory as Category;
     ViewData["Title"] = currentCategory?.Name ?? "Kategorien";
     ViewData["Description"] = $"{currentCategory?.Name} bei MIRBEST — wähle eine Unterkategorie, um passende Ersatzteile zu finden.";
+
+    // Für "zurück zu dieser Kategorieseite" nach Create/Edit/Delete eines Produkts.
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
 }
 
 <nav class="breadcrumb">
@@ -27,8 +30,8 @@
 @if (User.IsInRole("Admin"))
 {
     <p>
-        <a asp-controller="Categories" asp-action="Create" asp-route-parentId="@currentCategory?.Id" class="btn">Unterkategorie hinzufügen</a>
-        <a asp-controller="Products" asp-action="Create" asp-route-categoryId="@currentCategory?.Id" class="btn btn-secondary">Ersatzteil hinzufügen</a>
+        <a asp-controller="Categories" asp-action="Create" asp-route-parentId="@currentCategory?.Id" asp-route-returnUrl="@currentUrl" class="btn">Unterkategorie hinzufügen</a>
+        <a asp-controller="Products" asp-action="Create" asp-route-categoryId="@currentCategory?.Id" asp-route-returnUrl="@currentUrl" class="btn btn-secondary">Ersatzteil hinzufügen</a>
         <a asp-controller="Categories" asp-action="Edit" asp-route-id="@currentCategory?.Id" class="btn btn-secondary">Diese Kategorie bearbeiten</a>
     </p>
 }
@@ -84,10 +87,10 @@
                 @if (User.IsInRole("Admin"))
                 {
                     <p>
-                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id" class="icon-link" title="Bearbeiten">
+                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id" asp-route-returnUrl="@currentUrl" class="icon-link" title="Bearbeiten">
                             <partial name="_Icon" model="@("edit")" />
                         </a>
-                        <a asp-controller="Products" asp-action="Delete" asp-route-id="@p.Id" class="icon-link" title="Löschen">
+                        <a asp-controller="Products" asp-action="Delete" asp-route-id="@p.Id" asp-route-returnUrl="@currentUrl" class="icon-link" title="Löschen">
                             <partial name="_Icon" model="@("trash")" />
                         </a>
                     </p>

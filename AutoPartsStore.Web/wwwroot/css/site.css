@@ -6,6 +6,19 @@ body {
     font-family: Segoe UI, Arial, sans-serif;
     margin: 0;
     color: #222;
+    /* Sticky Footer: Body als vertikale Flexbox über die volle Bildschirmhöhe,
+       der Inhaltsbereich (body > .container) dehnt sich aus und drückt den
+       Footer nach unten, auch wenn wenig Inhalt vorhanden ist. */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Nur der direkte Inhalts-Container zwischen Header und Footer wächst –
+   die .container innerhalb des Footers sind nicht betroffen. */
+body > .container {
+    flex: 1 0 auto;
+    width: 100%;
 }
 
 header {

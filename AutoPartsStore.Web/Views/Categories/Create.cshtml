@@ -1,10 +1,16 @@
 @model Category
 @{
     ViewData["Title"] = "Kategorie hinzufügen";
+
+    // Unterkategorien werden nur als Kreis+Pfeil angezeigt (siehe Home/Category.cshtml) —
+    // Bild und Beschreibung werden dort nie dargestellt, daher braucht das Formular
+    // diese Felder nur bei einer neuen Kategorie auf oberster Ebene.
+    var isSubcategory = Model.ParentCategoryId.HasValue;
 }
 <h1>Kategorie hinzufügen</h1>
 
 <form asp-action="Create" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="form-group">
@@ -13,10 +19,13 @@
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
-        <label asp-for="Description">Beschreibung</label>
-        <input asp-for="Description" class="form-control" />
-    </div>
+    @if (!isSubcategory)
+    {
+        <div class="form-group">
+            <label asp-for="Description">Beschreibung</label>
+            <input asp-for="Description" class="form-control" />
+        </div>
+    }
 
     <div class="form-group">
         <label asp-for="ParentCategoryId">Übergeordnete Kategorie (optional)</label>
@@ -25,12 +34,15 @@
         </select>
     </div>
 
-    <div class="form-group">
-        <label for="image">Bild</label>
-        <input type="file" id="image" name="image" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
-        <small>PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
-    </div>
+    @if (!isSubcategory)
+    {
+        <div class="form-group">
+            <label for="image">Bild</label>
+            <input type="file" id="image" name="image" class="form-control" accept=".png,.jpg,.jpeg,.svg,.webp" />
+            <small>PNG, JPG, SVG oder WEBP, maximal 5 MB.</small>
+        </div>
+    }
 
     <button type="submit" class="btn">Speichern</button>
-    <a asp-action="Index" class="btn btn-secondary">Abbrechen</a>
+    <a href="@(string.IsNullOrEmpty(ViewBag.ReturnUrl as string) ? Url.Action("Index") : ViewBag.ReturnUrl)" class="btn btn-secondary">Abbrechen</a>
 </form>
