@@ -129,26 +129,28 @@ public class CheckoutAndPaymentTests
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var product = new Product { Name = "Ölfilter", Price = 10m, StockQuantity = 10, CategoryId = category.Id };
+        var product = new Product { Name = "Ölfilter", Price = 10m, StockQuantity = 50, CategoryId = category.Id };
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
         const string userId = "user1";
+        // Bonuspunkte gibt es erst ab einem Bestellwert über 300 € (siehe
+        // PaymentsController.MarkOrderPaidAsync) — Summe hier bewusst darüber.
         var order = new Order
         {
             UserId = userId,
             Status = OrderStatus.PendingPayment,
-            TotalAmount = 30m,
+            TotalAmount = 350m,
             PaymentProvider = "Stripe",
             PaymentSessionId = "sess_123",
             Items = new List<OrderItem>
             {
-                new() { ProductId = product.Id, ProductName = product.Name, UnitPrice = 10m, Quantity = 3 }
+                new() { ProductId = product.Id, ProductName = product.Name, UnitPrice = 10m, Quantity = 35 }
             }
         };
         context.Orders.Add(order);
 
-        context.CartItems.Add(new CartItem { UserId = userId, ProductId = product.Id, Quantity = 3 });
+        context.CartItems.Add(new CartItem { UserId = userId, ProductId = product.Id, Quantity = 35 });
         await context.SaveChangesAsync();
 
         var productRepo = new ProductRepository(context);
@@ -181,12 +183,12 @@ public class CheckoutAndPaymentTests
 
         var updatedOrder = await context.Orders.Include(o => o.Items).FirstAsync(o => o.Id == order.Id);
         Assert.Equal(OrderStatus.Paid, updatedOrder.Status);
-        Assert.Equal(30, updatedOrder.PointsEarned);
+        Assert.Equal(350, updatedOrder.PointsEarned);
 
         var updatedProduct = await context.Products.FirstAsync(p => p.Id == product.Id);
-        Assert.Equal(7, updatedProduct.StockQuantity);
+        Assert.Equal(15, updatedProduct.StockQuantity);
 
-        Assert.Equal(30, user.BonusPoints);
+        Assert.Equal(350, user.BonusPoints);
         Assert.False(await context.CartItems.AnyAsync(c => c.UserId == userId));
     }
 
@@ -205,11 +207,13 @@ public class CheckoutAndPaymentTests
         await context.SaveChangesAsync();
 
         const string userId = "user1";
+        // Auch hier: Bestellwert bewusst über der 300-€-Schwelle, damit Punkte
+        // überhaupt anfallen und der Idempotenz-Test aussagekräftig bleibt.
         var order = new Order
         {
             UserId = userId,
             Status = OrderStatus.PendingPayment,
-            TotalAmount = 10m,
+            TotalAmount = 350m,
             PaymentSessionId = "sess_456",
             Items = new List<OrderItem>
             {
@@ -255,6 +259,76 @@ public class CheckoutAndPaymentTests
         var updatedProduct = await context.Products.FirstAsync(p => p.Id == product.Id);
         Assert.Equal(8, updatedProduct.StockQuantity); // списано один раз, не дважды
 
-        Assert.Equal(10, user.BonusPoints); // начислено один раз
+        Assert.Equal(350, user.BonusPoints); // начислено один раз
+    }
+
+    [Fact]
+    public async Task Webhook_OrderBelowPointsThreshold_DoesNotAwardPoints()
+    {
+        // Bonuspunkte gibt es erst ab einem Bestellwert über 300 € — hier
+        // bewusst darunter, um genau diese Regel abzusichern.
+        await using var db = new SqliteTestDatabase();
+        var context = db.Context;
+
+        var category = new Category { Name = "Motor" };
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var product = new Product { Name = "Ölfilter", Price = 10m, StockQuantity = 10, CategoryId = category.Id };
+        context.Products.Add(product);
+        await context.SaveChangesAsync();
+
+        const string userId = "user1";
+        var order = new Order
+        {
+            UserId = userId,
+            Status = OrderStatus.PendingPayment,
+            TotalAmount = 250m,
+            PaymentProvider = "Stripe",
+            PaymentSessionId = "sess_789",
+            Items = new List<OrderItem>
+            {
+                new() { ProductId = product.Id, ProductName = product.Name, UnitPrice = 10m, Quantity = 2 }
+            }
+        };
+        context.Orders.Add(order);
+        await context.SaveChangesAsync();
+
+        var productRepo = new ProductRepository(context);
+        var cartRepo = new CartItemRepository(context);
+        var orderRepo = new OrderRepository(context);
+        var unitOfWork = new UnitOfWork(context);
+
+        var user = new ApplicationUser { Id = userId, BonusPoints = 0 };
+        var userManagerMock = CreateUserManagerMock();
+        userManagerMock.Setup(m => m.FindByIdAsync(userId)).ReturnsAsync(user);
+        userManagerMock.Setup(m => m.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
+
+        var paymentServiceMock = new Mock<IPaymentService>();
+        paymentServiceMock
+            .Setup(p => p.ParseWebhookEvent(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(new PaymentWebhookResult { SessionId = "sess_789", IsPaid = true });
+
+        var controller = new PaymentsController(
+            orderRepo, cartRepo, productRepo, paymentServiceMock.Object, userManagerMock.Object, unitOfWork,
+            NullLogger<PaymentsController>.Instance);
+
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("{}"));
+        httpContext.Request.Headers["Stripe-Signature"] = "test-signature";
+        controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+        var result = await controller.Webhook();
+
+        Assert.IsType<OkResult>(result);
+
+        var updatedOrder = await context.Orders.FirstAsync(o => o.Id == order.Id);
+        Assert.Equal(OrderStatus.Paid, updatedOrder.Status);
+        Assert.Equal(0, updatedOrder.PointsEarned);
+        Assert.Equal(0, user.BonusPoints);
+
+        // Lagerbestand wird trotzdem regulär reduziert — nur die Punktevergabe entfällt.
+        var updatedProduct = await context.Products.FirstAsync(p => p.Id == product.Id);
+        Assert.Equal(8, updatedProduct.StockQuantity);
     }
 }

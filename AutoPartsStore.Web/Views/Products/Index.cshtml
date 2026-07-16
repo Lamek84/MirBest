@@ -10,8 +10,6 @@
 }
 <h1>@(ViewData["CategoryName"] as string ?? "Ersatzteilkatalog")</h1>
 
-<p><a asp-action="Index">Alle Kategorien</a></p>
-
 <form asp-action="Index" method="get" class="filter-form">
     <input type="hidden" name="categoryId" value="@ViewData["CurrentCategoryId"]" />
 
