@@ -626,10 +626,12 @@ dl dt {
 .product-detail-image {
     width: 320px;
     height: 280px;
-    object-fit: cover;
+    box-sizing: border-box;
+    object-fit: contain;
     border-radius: 12px;
     background: #fff;
     border: 1px solid #eee;
+    padding: 16px;
     flex-shrink: 0;
 }
 
