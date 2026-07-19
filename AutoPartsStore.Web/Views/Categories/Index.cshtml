@@ -24,14 +24,29 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var category in Model)
+        @for (var i = 0; i < Model.Count; i++)
         {
+            var category = Model[i];
+            // Innerhalb der (nach Elternteil gruppierten) Liste ermitteln, ob dies das
+            // erste/letzte Geschwister ist — dann "Nach oben"/"Nach unten" deaktivieren.
+            var isFirstSibling = i == 0 || Model[i - 1].ParentCategoryId != category.ParentCategoryId;
+            var isLastSibling = i == Model.Count - 1 || Model[i + 1].ParentCategoryId != category.ParentCategoryId;
             <tr>
                 <td><img src="@(string.IsNullOrEmpty(category.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : category.ImageUrl)" alt="@category.Name" class="cart-thumb" /></td>
                 <td>@category.Name</td>
                 <td>@(category.ParentCategoryId.HasValue && parentNames.TryGetValue(category.ParentCategoryId.Value, out var parentName) ? parentName : "—")</td>
                 <td>@category.Description</td>
                 <td>
+                    <form asp-action="MoveUp" asp-route-id="@category.Id" method="post" class="move-form">
+                        <button type="submit" class="icon-link-btn" title="Nach oben" @(isFirstSibling ? "disabled" : "")>
+                            <partial name="_Icon" model="@("arrow-up")" />
+                        </button>
+                    </form>
+                    <form asp-action="MoveDown" asp-route-id="@category.Id" method="post" class="move-form">
+                        <button type="submit" class="icon-link-btn" title="Nach unten" @(isLastSibling ? "disabled" : "")>
+                            <partial name="_Icon" model="@("arrow-down")" />
+                        </button>
+                    </form>
                     <a asp-action="Edit" asp-route-id="@category.Id" class="icon-link" title="Bearbeiten">
                         <partial name="_Icon" model="@("edit")" />
                     </a>

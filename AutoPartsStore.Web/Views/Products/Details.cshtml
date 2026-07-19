@@ -1,0 +1,74 @@
+@model Product
+@{
+    var categoryName = ViewBag.CategoryName as string;
+    var fitments = ViewBag.Fitments as IReadOnlyList<ProductVehicleFitment> ?? new List<ProductVehicleFitment>();
+
+    ViewData["Title"] = Model.Name;
+    ViewData["Description"] = string.IsNullOrEmpty(Model.Description)
+        ? $"{Model.Name} bei MIRBEST — Art.-Nr. {Model.PartNumber}, {Model.Manufacturer}."
+        : Model.Description;
+
+    // Für "zurück zu dieser Seite" nach Bearbeiten/Löschen durch den Admin.
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<nav class="breadcrumb">
+    <a asp-controller="Home" asp-action="Index" asp-fragment="kategorien">Alle Kategorien</a>
+    @if (categoryName is not null)
+    {
+        <span> / </span>
+        <a asp-controller="Home" asp-action="Category" asp-route-id="@Model.CategoryId">@categoryName</a>
+    }
+    <span> / </span>
+    <span>@Model.Name</span>
+</nav>
+
+<div class="product-detail">
+    <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? Url.Content("~/images/category-placeholder.png") : Model.ImageUrl)" alt="@Model.Name" class="product-detail-image" />
+
+    <div class="product-detail-info">
+        <h1>@Model.Name</h1>
+        <p class="product-meta">Art.-Nr. @Model.PartNumber · @Model.Manufacturer</p>
+        <p class="product-price">@Model.Price.ToString("N2") €</p>
+        <p class="product-meta">Bestand: @Model.StockQuantity</p>
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="product-detail-description">@Model.Description</p>
+        }
+
+        <form asp-controller="Cart" asp-action="Add" method="post" class="add-to-cart-form">
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <input type="number" name="quantity" value="1" min="1" class="qty-input" />
+            <button type="submit" class="btn icon-btn">
+                <partial name="_Icon" model="@("cart")" />
+                <span>In den Warenkorb</span>
+            </button>
+        </form>
+
+        @if (fitments.Any())
+        {
+            <h2>Passt zu folgenden Fahrzeugen</h2>
+            <ul class="fitment-list">
+                @foreach (var fitment in fitments)
+                {
+                    <li>
+                        @fitment.VehicleModel?.VehicleMake?.Name @fitment.VehicleModel?.Name
+                        @if (fitment.YearFrom is not null || fitment.YearTo is not null)
+                        {
+                            <span>(@(fitment.YearFrom?.ToString() ?? "…") – @(fitment.YearTo?.ToString() ?? "…"))</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (User.IsInRole("Admin"))
+        {
+            <p>
+                <a asp-action="Edit" asp-route-id="@Model.Id" asp-route-returnUrl="@currentUrl" class="btn btn-secondary">Bearbeiten</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" asp-route-returnUrl="@currentUrl" class="btn btn-secondary">Löschen</a>
+            </p>
+        }
+    </div>
+</div>

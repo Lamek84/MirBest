@@ -80,6 +80,24 @@ public class ProductsController : Controller
         return View(products);
     }
 
+    // Öffentliche Detailseite eines Ersatzteils — Klick auf eine Produktkarte
+    // führt hierher statt direkt in den Warenkorb (siehe Products/Index.cshtml
+    // und Home/Category.cshtml).
+    public async Task<IActionResult> Details(int id)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        var category = await _categoryRepository.GetByIdAsync(product.CategoryId);
+        ViewBag.CategoryName = category?.Name;
+        ViewBag.Fitments = await _fitmentRepository.GetByProductAsync(id);
+
+        return View(product);
+    }
+
     // Поиск товаров по VIN через внешний каталог. Пока подключена заглушка
     // (IVehicleCatalogService.IsConfigured == false), показываем подсказку.
     // После подключения реального провайдера этот метод менять не нужно.

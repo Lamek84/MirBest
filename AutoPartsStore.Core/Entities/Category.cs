@@ -12,6 +12,11 @@ public class Category : BaseEntity
 
     public string? ImageUrl { get; set; }
 
+    // Reihenfolge der Anzeige unter Geschwistern mit demselben ParentCategoryId
+    // (aufsteigend, bei Gleichstand nach Name). Wird über "Nach oben/unten"
+    // in CategoriesController.MoveUp/MoveDown gepflegt.
+    public int DisplayOrder { get; set; }
+
     // Selbstreferenz für die Kategorie-Hierarchie (z. B. Wartungsteile > Filter >
     // Ölfilter). Null = oberste Ebene. Siehe HomeController.Category für die
     // öffentliche Navigation durch den Baum.

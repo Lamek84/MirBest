@@ -234,6 +234,30 @@ header a {
     gap: 4px;
 }
 
+/* Für "Nach oben"/"Nach unten"-Formulare (müssen <button> statt <a> sein,
+   da sie per POST auslösen) — optisch wie .icon-link. */
+.icon-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: #0d6efd;
+    cursor: pointer;
+}
+
+.icon-link-btn:disabled {
+    color: #bbb;
+    cursor: default;
+}
+
+.move-form {
+    display: inline-block;
+}
+
 .icon-btn {
     display: inline-flex;
     align-items: center;
@@ -512,6 +536,19 @@ dl dt {
     padding: 12px;
 }
 
+/* Umhüllt Bild/Name/Preis der Karte — führt zur Detailseite (Products/Details).
+   Warenkorb-Formular und Admin-Icons bleiben bewusst außerhalb (kein <button>
+   innerhalb eines <a> — ungültiges HTML). */
+.product-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-card-link:hover h3 {
+    text-decoration: underline;
+}
+
 .product-card img {
     width: 150px;
     height: 130px;
@@ -545,6 +582,77 @@ dl dt {
     font-size: 15px;
     font-weight: 700;
     color: #1f2d3d;
+}
+
+/* Auf schmalen Bildschirmen erzwingen wir genau 2 Spalten statt der festen
+   174px-Breite (die bei Handy-Breiten sonst nur 1 Karte pro Zeile zulässt). */
+@media (max-width: 700px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .product-card {
+        width: auto;
+        min-height: 300px;
+        padding: 8px;
+    }
+
+    .product-card img {
+        width: 100%;
+        height: 110px;
+    }
+
+    .product-card h3 {
+        font-size: 13px;
+    }
+
+    .product-meta {
+        font-size: 10px;
+    }
+
+    .product-price {
+        font-size: 14px;
+    }
+}
+
+.product-detail {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.product-detail-image {
+    width: 320px;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.product-detail-info {
+    flex: 1 1 260px;
+    min-width: 260px;
+}
+
+.product-detail-description {
+    margin: 16px 0;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.fitment-list {
+    margin: 8px 0 16px 20px;
+}
+
+@media (max-width: 700px) {
+    .product-detail-image {
+        width: 100%;
+        height: 220px;
+    }
 }
 
 .services-section {

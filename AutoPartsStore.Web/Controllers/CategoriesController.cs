@@ -33,6 +33,7 @@ public class CategoriesController : Controller
 
         var sorted = categories
             .OrderBy(c => c.ParentCategoryId.HasValue && namesById.TryGetValue(c.ParentCategoryId.Value, out var parentName) ? parentName : c.Name)
+            .ThenBy(c => c.DisplayOrder)
             .ThenBy(c => c.Name)
             .ToList();
 
@@ -66,6 +67,13 @@ public class CategoriesController : Controller
         {
             category.ImageUrl = await SaveImageAsync(image);
         }
+
+        // Neue Kategorie landet ans Ende ihrer Geschwister (gleiches ParentCategoryId),
+        // statt die vom Formular ggf. mitgeschickte DisplayOrder (immer 0) zu übernehmen.
+        var siblings = (await _categoryRepository.GetAllAsync())
+            .Where(c => c.ParentCategoryId == category.ParentCategoryId)
+            .ToList();
+        category.DisplayOrder = siblings.Count == 0 ? 0 : siblings.Max(c => c.DisplayOrder) + 1;
 
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveChangesAsync();
@@ -155,6 +163,55 @@ public class CategoriesController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // "Nach oben"/"Nach unten" — vertauscht die Position mit dem vorherigen bzw.
+    // nächsten Geschwister (gleiches ParentCategoryId). Kein Drag&Drop, aber
+    // reicht für die überschaubare Anzahl an (Unter-)Kategorien pro Ebene.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveUp(int id, string? returnUrl) => await MoveAsync(id, -1, returnUrl);
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveDown(int id, string? returnUrl) => await MoveAsync(id, 1, returnUrl);
+
+    private async Task<IActionResult> MoveAsync(int id, int direction, string? returnUrl)
+    {
+        var category = await _categoryRepository.GetByIdAsync(id);
+        if (category is null)
+        {
+            return NotFound();
+        }
+
+        var siblings = (await _categoryRepository.GetAllAsync())
+            .Where(c => c.ParentCategoryId == category.ParentCategoryId)
+            .OrderBy(c => c.DisplayOrder).ThenBy(c => c.Name).ThenBy(c => c.Id)
+            .ToList();
+
+        // Erst auf lückenlose, eindeutige Werte 0..n-1 normalisieren — ältere
+        // Kategorien haben alle DisplayOrder = 0, sonst würde ein Tausch
+        // zweier gleicher Werte optisch nichts bewirken.
+        for (var i = 0; i < siblings.Count; i++)
+        {
+            siblings[i].DisplayOrder = i;
+        }
+
+        var index = siblings.FindIndex(c => c.Id == id);
+        var swapIndex = index + direction;
+        if (index >= 0 && swapIndex >= 0 && swapIndex < siblings.Count)
+        {
+            (siblings[index].DisplayOrder, siblings[swapIndex].DisplayOrder) =
+                (siblings[swapIndex].DisplayOrder, siblings[index].DisplayOrder);
+        }
+
+        foreach (var sibling in siblings)
+        {
+            _categoryRepository.Update(sibling);
+        }
+        await _categoryRepository.SaveChangesAsync();
+
+        return RedirectToReturnUrlOrIndex(returnUrl);
     }
 
     // Zurück zur Seite, von der aus die Kategorie angelegt wurde (z. B. Products/Index
