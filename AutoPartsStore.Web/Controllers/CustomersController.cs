@@ -45,4 +45,27 @@ public class CustomersController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    // Freie Kundennummer setzen/ändern — keine automatische Vergabe, keine
+    // Eindeutigkeitsprüfung, der Admin kann jede beliebige Zahl eintragen
+    // (oder das Feld leeren, um die Nummer wieder zu entfernen).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetCustomerNumber(string userId, long? customerNumber)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        user.CustomerNumber = customerNumber;
+        await _userManager.UpdateAsync(user);
+
+        TempData["CartMessage"] = customerNumber.HasValue
+            ? $"Kundennummer {customerNumber} wurde {user.Email} zugewiesen."
+            : $"Kundennummer von {user.Email} wurde entfernt.";
+
+        return RedirectToAction(nameof(Index));
+    }
 }

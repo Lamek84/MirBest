@@ -625,6 +625,9 @@ namespace AutoPartsStore.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("CustomerNumber")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");

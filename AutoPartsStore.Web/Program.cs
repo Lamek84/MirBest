@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using AutoPartsStore.Data;
 using AutoPartsStore.Data.Identity;
 using AutoPartsStore.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
@@ -58,6 +59,20 @@ try
             }));
     });
 
+    // Nginx läuft als Reverse-Proxy vor der App (proxy_pass http://localhost:5000) —
+    // ohne das hier landet jede Anfrage bei Kestrel als "http", egal ob der Browser
+    // wirklich https benutzt hat. UseHttpsRedirection/UseHsts/Request.Scheme (und
+    // damit auch generierte absolute URLs wie die Stripe Success/Cancel-Links)
+    // verlassen sich darauf, dass X-Forwarded-Proto/-Host korrekt ausgewertet werden.
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+        // Nginx läuft auf demselben Host (127.0.0.1) — Standard-KnownProxies/-Networks
+        // sind leer und würden den Header sonst verwerfen.
+        options.KnownProxies.Clear();
+        options.KnownNetworks.Clear();
+    });
+
     builder.Services.AddDataServices(builder.Configuration);
     builder.Services.AddInfrastructureServices(builder.Configuration);
 
@@ -103,6 +118,10 @@ try
         await DbInitializer.SeedAsync(context, userManager, roleManager, configuration);
     }
 
+    // Muss vor UseHsts/UseHttpsRedirection stehen, sonst sehen die (und alles
+    // danach) weiterhin "http" statt des echten Schemas vom Browser.
+    app.UseForwardedHeaders();
+
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Home/Error");
@@ -135,7 +154,12 @@ try
             "img-src 'self' data: https:; " +
             "font-src 'self'; " +
             "frame-ancestors 'none'; " +
-            "form-action 'self'; " +
+            // Explizit statt nur 'self' — Absicherung falls Scheme/Host hinter dem
+            // nginx-Reverse-Proxy in einem Zwischenschritt nicht sauber erkannt werden.
+            // checkout.stripe.com muss hier stehen, weil das Checkout-Formular per
+            // Redirect (302) zu Stripe weiterleitet und Firefox form-action gegen die
+            // GESAMTE Redirect-Kette prüft — sonst wird die Weiterleitung blockiert.
+            "form-action 'self' https://mirbest.de https://www.mirbest.de https://checkout.stripe.com; " +
             "connect-src 'self' https://api.stripe.com; " +
             "frame-src https://checkout.stripe.com https://js.stripe.com";
 

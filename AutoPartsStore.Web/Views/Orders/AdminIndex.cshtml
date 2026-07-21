@@ -1,0 +1,95 @@
+@model IReadOnlyList<Order>
+@{
+    ViewData["Title"] = "Alle Bestellungen";
+    var emailsById = ViewBag.CustomerEmails as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var currentPage = (int)ViewBag.CurrentPage;
+    var totalPages = (int)ViewBag.TotalPages;
+    var totalCount = (int)ViewBag.TotalCount;
+}
+<h1>Alle Bestellungen</h1>
+
+<form asp-action="AdminIndex" method="get" class="filter-form">
+    <div class="filter-field">
+        <label for="status">Status</label>
+        <select id="status" name="status" asp-items="ViewBag.StatusOptions" class="form-control">
+            <option value="">Alle</option>
+        </select>
+    </div>
+
+    <div class="filter-field filter-price-range">
+        <div class="filter-price-item">
+            <label for="fromDate">Von</label>
+            <input type="date" id="fromDate" name="fromDate" value="@ViewBag.CurrentFromDate" class="form-control" />
+        </div>
+        <div class="filter-price-item">
+            <label for="toDate">Bis</label>
+            <input type="date" id="toDate" name="toDate" value="@ViewBag.CurrentToDate" class="form-control" />
+        </div>
+    </div>
+
+    <div class="filter-actions">
+        <button type="submit" class="btn">Filtern</button>
+        <a asp-action="AdminIndex" class="btn btn-secondary">Zurücksetzen</a>
+    </div>
+</form>
+
+<p class="product-meta">@totalCount Bestellung(en) insgesamt.</p>
+
+@if (!Model.Any())
+{
+    <p>Keine Bestellungen gefunden. Passe ggf. die Filter an.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Bestellnummer</th>
+                <th>Datum</th>
+                <th>Kunde</th>
+                <th>Status</th>
+                <th>Versandart</th>
+                <th>Artikel</th>
+                <th>Summe</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>#@order.Id</td>
+                <td>@order.OrderDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@(emailsById.TryGetValue(order.UserId, out var email) ? email : order.UserId)</td>
+                <td>@order.Status</td>
+                <td>@order.DeliveryLabel</td>
+                <td>@(order.Items?.Sum(i => i.Quantity) ?? 0)</td>
+                <td>@order.TotalAmount.ToString("N2") €</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@order.Id" class="icon-link" title="Details">
+                        <partial name="_Icon" model="@("list")" />
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@order.Id" class="icon-link" title="Löschen">
+                        <partial name="_Icon" model="@("trash")" />
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    @if (totalPages > 1)
+    {
+        <nav class="pagination">
+            @if (currentPage > 1)
+            {
+                <a asp-action="AdminIndex" asp-route-status="@ViewBag.CurrentStatus" asp-route-fromDate="@ViewBag.CurrentFromDate" asp-route-toDate="@ViewBag.CurrentToDate" asp-route-page="@(currentPage - 1)" class="btn btn-secondary">← Zurück</a>
+            }
+            <span class="product-meta">Seite @currentPage von @totalPages</span>
+            @if (currentPage < totalPages)
+            {
+                <a asp-action="AdminIndex" asp-route-status="@ViewBag.CurrentStatus" asp-route-fromDate="@ViewBag.CurrentFromDate" asp-route-toDate="@ViewBag.CurrentToDate" asp-route-page="@(currentPage + 1)" class="btn btn-secondary">Weiter →</a>
+            }
+        </nav>
+    }
+}

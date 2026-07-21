@@ -130,6 +130,13 @@
                         <partial name="_Icon" model="@("list")" />
                         <span class="icon-label">Meine Bestellungen</span>
                     </a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Orders" asp-action="AdminIndex" class="nav-icon-link" title="Alle Bestellungen">
+                            <partial name="_Icon" model="@("list")" />
+                            <span class="icon-label">Alle Bestellungen</span>
+                        </a>
+                    }
                     <span>Hallo, @User.Identity!.Name</span>
                     <span title="Bonuspunkte">Bonuspunkte: @headerBonusPoints</span>
                     <a asp-controller="Account" asp-action="ChangePassword" class="nav-icon-link" title="Passwort ändern">

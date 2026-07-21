@@ -168,9 +168,11 @@ public class CheckoutAndPaymentTests
             .Setup(p => p.ParseWebhookEvent(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(new PaymentWebhookResult { SessionId = "sess_123", IsPaid = true });
 
+        var emailSenderMock = new Mock<IEmailSender>();
+
         var controller = new PaymentsController(
             orderRepo, cartRepo, productRepo, paymentServiceMock.Object, userManagerMock.Object, unitOfWork,
-            NullLogger<PaymentsController>.Instance);
+            emailSenderMock.Object, NullLogger<PaymentsController>.Instance);
 
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("{}"));
@@ -238,9 +240,11 @@ public class CheckoutAndPaymentTests
             .Setup(p => p.ParseWebhookEvent(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(new PaymentWebhookResult { SessionId = "sess_456", IsPaid = true });
 
+        var emailSenderMock = new Mock<IEmailSender>();
+
         var controller = new PaymentsController(
             orderRepo, cartRepo, productRepo, paymentServiceMock.Object, userManagerMock.Object, unitOfWork,
-            NullLogger<PaymentsController>.Instance);
+            emailSenderMock.Object, NullLogger<PaymentsController>.Instance);
 
         async Task<IActionResult> CallWebhookAsync()
         {
@@ -309,9 +313,11 @@ public class CheckoutAndPaymentTests
             .Setup(p => p.ParseWebhookEvent(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(new PaymentWebhookResult { SessionId = "sess_789", IsPaid = true });
 
+        var emailSenderMock = new Mock<IEmailSender>();
+
         var controller = new PaymentsController(
             orderRepo, cartRepo, productRepo, paymentServiceMock.Object, userManagerMock.Object, unitOfWork,
-            NullLogger<PaymentsController>.Instance);
+            emailSenderMock.Object, NullLogger<PaymentsController>.Instance);
 
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Body = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("{}"));

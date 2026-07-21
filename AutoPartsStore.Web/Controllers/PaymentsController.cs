@@ -13,12 +13,17 @@ namespace AutoPartsStore.Web.Controllers;
 // пользователя), поэтому он единственный тут без [Authorize].
 public class PaymentsController : Controller
 {
+    // Reale MIRBEST-Adresse, an die die Benachrichtigung über neue bezahlte
+    // Bestellungen geht — dieselbe wie bei Kontaktformular/Terminanfragen.
+    private const string AdminNotificationEmail = "info@mirbest.de";
+
     private readonly IOrderRepository _orderRepository;
     private readonly ICartItemRepository _cartItemRepository;
     private readonly IProductRepository _productRepository;
     private readonly IPaymentService _paymentService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailSender _emailSender;
     private readonly ILogger<PaymentsController> _logger;
 
     public PaymentsController(
@@ -28,6 +33,7 @@ public class PaymentsController : Controller
         IPaymentService paymentService,
         UserManager<ApplicationUser> userManager,
         IUnitOfWork unitOfWork,
+        IEmailSender emailSender,
         ILogger<PaymentsController> logger)
     {
         _orderRepository = orderRepository;
@@ -36,6 +42,7 @@ public class PaymentsController : Controller
         _paymentService = paymentService;
         _userManager = userManager;
         _unitOfWork = unitOfWork;
+        _emailSender = emailSender;
         _logger = logger;
     }
 
@@ -137,8 +144,26 @@ public class PaymentsController : Controller
         // на одном и том же AppDbContext (он Scoped на HTTP-запрос), поэтому
         // одна транзакция вокруг всех SaveChangesAsync ниже действительно
         // атомарна на стороне БД.
+        // Signalisiert nach der Transaktion, ob DIESER Aufruf die Bestellung wirklich
+        // neu auf "bezahlt" gesetzt hat — nur dann soll die Benachrichtigungs-Mail raus
+        // (sonst würden Success-Rückkehr und Webhook bei einer Race doppelt mailen).
+        var wasNewlyPaid = false;
+
         await _unitOfWork.ExecuteInTransactionAsync(async () =>
         {
+            // Атомарно застолбить оплату. Если статус уже перевёл другой запрос
+            // (гонка между Success-возвратом и вебхуком) — выходим, чтобы не
+            // повторить списание склада и начисление баллов. ExecuteUpdate внутри
+            // этой же транзакции блокирует строку, поэтому "выигрывает" ровно один.
+            if (!await _orderRepository.TryMarkPaidAsync(order.Id))
+            {
+                return;
+            }
+
+            wasNewlyPaid = true;
+
+            // Синхронизируем отслеживаемую сущность с уже применённым в БД статусом,
+            // чтобы последующий Update/SaveChanges не перезаписал его обратно.
             order.Status = OrderStatus.Paid;
 
             // Bonuspunkte-Programm: 1 Punkt je bezahltem Euro (abgerundet) —
@@ -187,5 +212,41 @@ public class PaymentsController : Controller
                 await _cartItemRepository.SaveChangesAsync();
             }
         });
+
+        if (wasNewlyPaid)
+        {
+            await NotifyAdminOfNewOrderAsync(order);
+        }
+    }
+
+    // Wie bei Kontaktformular/Terminanfragen: E-Mail-Versand darf die eigentliche
+    // Bestellabwicklung nicht zu Fall bringen — Fehler nur loggen, nicht werfen.
+    private async Task NotifyAdminOfNewOrderAsync(Order order)
+    {
+        try
+        {
+            var itemsList = string.Join("\n", order.Items.Select(i =>
+                $"- {i.ProductName} x{i.Quantity} ({i.UnitPrice.ToString("N2")} €)"));
+
+            var subject = $"Neue Bestellung #{order.Id} — {order.TotalAmount.ToString("N2")} €";
+            var body = "Bestellnummer: #" + order.Id
+                + "\nSumme: " + order.TotalAmount.ToString("N2") + " €"
+                + "\nVersandart: " + (order.DeliveryLabel ?? order.DeliveryMethod)
+                + "\n\nArtikel:\n" + itemsList;
+
+            if (!string.IsNullOrEmpty(order.ShippingStreet))
+            {
+                body += "\n\nLieferadresse:\n" + order.ShippingName
+                    + "\n" + order.ShippingStreet
+                    + "\n" + order.ShippingPostalCode + " " + order.ShippingCity
+                    + (string.IsNullOrEmpty(order.ShippingPhone) ? "" : "\nTel.: " + order.ShippingPhone);
+            }
+
+            await _emailSender.SendEmailAsync(AdminNotificationEmail, subject, body);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Neue Bestellung #{OrderId}: Benachrichtigungs-E-Mail fehlgeschlagen.", order.Id);
+        }
     }
 }

@@ -868,6 +868,28 @@ a.service-card:hover {
     border-radius: 4px;
 }
 
+/* Zahlenfeld ohne Auf/Ab-Pfeile (z. B. Kundennummer — beliebige Zahl, kein Zähler). */
+.no-spinner {
+    -moz-appearance: textfield;
+}
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.customer-number-input {
+    width: 100px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
 .inline-form {
     display: inline-flex;
     gap: 6px;

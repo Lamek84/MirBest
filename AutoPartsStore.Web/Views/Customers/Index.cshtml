@@ -14,6 +14,7 @@ else
         <thead>
             <tr>
                 <th>E-Mail</th>
+                <th>Kundennummer</th>
                 <th>Bonuspunkte</th>
                 <th>Punkte anpassen</th>
             </tr>
@@ -23,6 +24,13 @@ else
         {
             <tr>
                 <td>@customer.Email</td>
+                <td>
+                    <form asp-action="SetCustomerNumber" method="post" class="inline-form">
+                        <input type="hidden" name="userId" value="@customer.Id" />
+                        <input type="number" name="customerNumber" value="@customer.CustomerNumber" step="1" class="qty-input no-spinner customer-number-input" placeholder="—" />
+                        <button type="submit" class="btn btn-secondary">Speichern</button>
+                    </form>
+                </td>
                 <td>@customer.BonusPoints</td>
                 <td>
                     <form asp-action="AdjustPoints" method="post" class="inline-form">
