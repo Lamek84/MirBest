@@ -9,7 +9,7 @@ public static class DeliveryOptions
     public static readonly DeliveryOption Pickup = new()
     {
         Code = "Selbstabholung",
-        DisplayName = "Selbstabholung (Hinterm Sielhof 4, 28277 Bremen)",
+        DisplayName = "Selbstabholung (Kornstraße 140, 28201 Bremen)",
         Price = 0m
     };
 

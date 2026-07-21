@@ -552,7 +552,11 @@ dl dt {
 .product-card img {
     width: 150px;
     height: 130px;
-    object-fit: cover;
+    box-sizing: border-box;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    padding: 6px;
     border-radius: 8px;
     margin: 0 auto 8px;
     display: block;
